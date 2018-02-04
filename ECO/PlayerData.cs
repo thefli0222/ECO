@@ -15,7 +15,43 @@ namespace ECO
             this.steamID = steamID;
         }
 
-        public void addNumber(string map, STAT stat, MapData.Team team, long number) {
+        public string statString()
+        {
+            string temp = "";
+            double[] t = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            double numberT = 0, numberCT = 0;
+            int x = 0;
+            foreach (var k in dataMap.Keys)
+            {
+                foreach (double d in dataMap[k].getCTData())
+                {
+                    t[x] += d*dataMap[k].getCTRounds();
+                    x++;
+                }
+                foreach (double d in dataMap[k].getTData())
+                {
+                    t[x] += d*dataMap[k].getTRounds();
+                    x++;
+                }
+                x = 0;
+                numberT += dataMap[k].getTRounds();
+                numberCT += dataMap[k].getCTRounds();
+            }
+            x = 0;
+            temp += steamID + ": ";
+            foreach(double d in t)
+            {
+                if (x < (t.Length / 2)){
+                    temp += Math.Round(d/numberCT, 2) + "|";
+                } else
+                {
+                    temp += Math.Round(d / numberT, 2) + "|";
+                }
+            }
+            return temp;
+        }
+
+        public void addNumber(string map, STAT stat, DemoInfo.Team team, long number) {
             if (dataMap.ContainsKey(map))
             {
                 dataMap[map].addData(team, (int)stat, number);
@@ -46,6 +82,40 @@ namespace ECO
             }
 
         }
+        public void addRound(string map, DemoInfo.Team team, long number)
+        {
+            if (dataMap.ContainsKey(map))
+            {
+                dataMap[map].addRound(team, number);
+            }
+            else
+            {
+                switch (map)
+                {
+                    case "de_mirage":
+                        dataMap.Add(map, new MapMirage());
+                        break;
+                    case "de_cache":
+                        dataMap.Add(map, new MapCache());
+                        break;
+                    case "de_inferno":
+                        dataMap.Add(map, new MapInferno());
+                        break;
+                    case "de_nuke":
+                        dataMap.Add(map, new MapNuke());
+                        break;
+                    case "de_cbble":
+                        dataMap.Add(map, new MapCobblestone());
+                        break;
+                    case "de_train":
+                        dataMap.Add(map, new MapTrain());
+                        break;
+                }
+                dataMap[map].addRound(team, number);
+            }
+
+        }
+
 
     }
 }
