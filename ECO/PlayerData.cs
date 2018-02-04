@@ -10,6 +10,7 @@ namespace ECO
         string[] playerNames;
         long steamID;
         Dictionary<string, MapData> dataMap = new Dictionary<string, MapData>();
+        
         public PlayerData(long steamID)
         {
             this.steamID = steamID;
@@ -49,6 +50,42 @@ namespace ECO
                 }
             }
             return temp;
+        }
+
+        public double[] getFullData()
+        {
+            double[] allData = new double[16];
+            double numberT = 0, numberCT = 0;
+            int x = 0;
+            foreach (var k in dataMap.Keys)
+            {
+                foreach (double d in dataMap[k].getCTData())
+                {
+                    allData[x] += d * dataMap[k].getCTRounds();
+                    x++;
+                }
+                foreach (double d in dataMap[k].getTData())
+                {
+                    allData[x] += d * dataMap[k].getTRounds();
+                    x++;
+                }
+                x = 0;
+                numberT += dataMap[k].getTRounds();
+                numberCT += dataMap[k].getCTRounds();
+            }
+            x = 0;
+            foreach (double d in allData)
+            {
+                if (x < (allData.Length / 2))
+                {
+                    allData[x] += d / numberCT;
+                }
+                else
+                {
+                    allData[x] += d / numberT;
+                }
+            }
+            return allData;
         }
 
         public void addNumber(string map, STAT stat, DemoInfo.Team team, long number) {

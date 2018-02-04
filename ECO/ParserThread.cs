@@ -124,5 +124,10 @@ namespace ECO
             parser.ParseToEnd(); 
             
         }
+
+        public Dictionary<long, PlayerData> getPlayerData()
+        {
+            return playerData;
+        }
     }
 }
