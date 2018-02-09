@@ -39,14 +39,17 @@ namespace ECO
 
                 foreach(Player p in parser.PlayingParticipants)
                 {
-                    if (!playerData.ContainsKey(p.SteamID))
+                    if (p.SteamID != 0)
                     {
-                        playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                    }
-                    playerData[p.SteamID].addRound(parser.Map, p.Team, 1);
-                    if (!p.IsAlive)
-                    {
-                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, p.Team, 1);
+                        if (!playerData.ContainsKey(p.SteamID))
+                        {
+                            playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                        }
+                        playerData[p.SteamID].addRound(parser.Map, p.Team, 1);
+                        if (!p.IsAlive)
+                        {
+                            playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, p.Team, 1);
+                        }
                     }
                 }
                 // We do this in a method-call since we'd else need to duplicate code
@@ -57,8 +60,8 @@ namespace ECO
 
             parser.PlayerKilled += (sender, e) =>
             {
-                if (!hasMatchStarted || e.Killer == null)
-                    return;
+                if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
+                        return;
                 Player killer = e.Killer;
                 if (!playerData.ContainsKey(killer.SteamID))
                 {
@@ -70,7 +73,7 @@ namespace ECO
 
             parser.SmokeNadeEnded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null)
+                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
@@ -83,7 +86,7 @@ namespace ECO
 
             parser.FireNadeEnded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null)
+                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
@@ -96,7 +99,7 @@ namespace ECO
 
             parser.FlashNadeExploded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null)
+                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
@@ -109,7 +112,7 @@ namespace ECO
 
             parser.ExplosiveNadeExploded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null)
+                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
