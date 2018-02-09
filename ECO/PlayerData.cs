@@ -6,7 +6,7 @@ namespace ECO
 {
     public class PlayerData
     {
-        public enum STAT { KILL, DEATH, FLASH, SMOKE, GRANADE, MOLOTOV, STEP, JUMP }
+        public enum STAT { KILL, DEATH, FLASH, SMOKE, GRANADE, MOLOTOV, STEP, JUMP, ENTRY_FRAG }
         string[] playerNames;
         long steamID;
         Dictionary<string, MapData> dataMap = new Dictionary<string, MapData>();
@@ -54,7 +54,7 @@ namespace ECO
 
         public double[] getFullData()
         {
-            double[] allData = new double[16];
+            double[] allData = new double[17];
             double numberT = 0, numberCT = 0;
             int x = 0;
             foreach (var k in dataMap.Keys)

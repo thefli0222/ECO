@@ -18,8 +18,10 @@ namespace ECO
             {
                 getInfoFromFile(fileName);
             }
-            foreach (var k in playerData.Keys)
+            foreach (var k in playerData.Keys){
+                Console.WriteLine(playerData[k]);
                 Console.WriteLine(playerData[k].statString());
+            }
         }
         public void getInfoFromFile(string fileName)
         {
@@ -30,7 +32,6 @@ namespace ECO
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) => {
                 hasMatchStarted = true;
-
             };
 
             parser.RoundEnd += (sender, e) => {
@@ -69,6 +70,15 @@ namespace ECO
                 }
 
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
+
+                //Is it the frag an entry frag?
+                int i = 0;
+                foreach (Player p in parser.PlayingParticipants)
+                {
+                    if (p.IsAlive) i++;
+                }
+                if (i == 1 && killer.Team == DemoInfo.Team.Terrorist)
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
