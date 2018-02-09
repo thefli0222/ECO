@@ -9,10 +9,6 @@ namespace ECO
     {
         static void Main(string[] args)
         {
-<<<<<<< HEAD
-            Console.WriteLine("Started");
-            ParserThread temp = new ParserThread(Directory.GetCurrentDirectory() + @"/demos/", "*.dem");
-=======
             string[] filePaths = Directory.GetFiles(@"C:\Users\fredr\OneDrive\Dokument\KandidatArbetet\Demo Filer\", "*.dem");
             ParserThread temp = new ParserThread(@"C:\Users\fredr\OneDrive\Dokument\KandidatArbetet\Demo Filer\", "*.dem");
 
@@ -40,9 +36,6 @@ namespace ECO
                     Console.WriteLine(tempString);
                 }
             }
-
-
->>>>>>> 28041a1aa2fd1607686ee9ba5e1c884f388c11e4
             Console.ReadKey();
 
 
