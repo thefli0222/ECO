@@ -20,14 +20,24 @@ namespace ECO
             for(int x = 0; x < kMean.getCentroids().Length; x++)
             {
                 tempString = "";
-                tempString += kMean.getCentroids()[x] + ": " ;
+                tempString += x + ": " ;
                 for (int i = 0; i < kMean.getCentroids()[x].Length; i++)
                 {
                     tempString += kMean.getCentroids()[x][i] + " | ";
                 }
                 Console.WriteLine(tempString);
-            }*/
+            }
 
+                {
+                    tempString = "";
+                    tempString += x + ": ";
+                    foreach (var value in kMean.getClusters()[x])
+                    {
+                        tempString += value + " | ";
+                    }
+                    Console.WriteLine(tempString);
+                }
+            }*/
             Console.ReadKey();
 
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 
 namespace ECO
@@ -7,12 +8,14 @@ namespace ECO
     class Kmeans
     {
         private double[][] centroids;
+        private static long theKey;
+        private Dictionary<long, int> clustering;
         public Kmeans(Dictionary<long, PlayerData> rawData, int k)
         {
             Dictionary<long, double[]> data = Normalized(rawData);
             bool changed = true; bool success = true;
-            Dictionary<long, int> clustering = InitClustering(data.Keys.Count, k, 0, rawData);
-            centroids = Allocate(k, data[0].Length);
+            clustering = InitClustering(data.Keys.Count, k, 0, rawData);
+            centroids = Allocate(k, data[theKey].Length);
             int maxCount = data.Keys.Count * 50;
             int iteration = 0;
             while (changed == true && success == true && iteration < maxCount)
@@ -21,23 +24,35 @@ namespace ECO
                 success = UpdateMeans(data, clustering, centroids);
                 changed = UpdateClustering(data, clustering, centroids);
             }
-            
+            Console.WriteLine("Stop");
+        }
+
+        public Dictionary<int, ArrayList> getClusters()
+        {
+            Dictionary<int, ArrayList> temp = new Dictionary<int, ArrayList>();
+            foreach (var key in clustering.Keys)
+            {
+                if(!temp.ContainsKey(clustering[key]))
+                    temp.Add(clustering[key], new ArrayList());
+                temp[clustering[key]].Add(key);
+            }
+            return temp;
         }
 
         private static Dictionary<long, double[]> Normalized(Dictionary<long, PlayerData> rawData)
         {
-            Dictionary <long, double[]> result = new Dictionary<long, double[]>(); 
-            
+            Dictionary <long, double[]> result = new Dictionary<long, double[]>();
             foreach(var key in rawData.Keys)
             {
                 double[] temp = new double[rawData[key].getFullData().Length];
                 temp = rawData[key].getFullData();
                 result.Add(key, temp);
+                theKey = key;
             }
 
 
             int count = result.Keys.Count;
-            for (int j = 0; j < result[0].Length; j++)
+            for (int j = 0; j < result[theKey].Length; j++)
             {
                 double colSum = 0.0;
                 foreach (var key in result.Keys)
@@ -47,6 +62,11 @@ namespace ECO
                 foreach (var key in result.Keys)
                     sum += (result[key][j] - mean) * (result[key][j] - mean);
                 double sd = sum / count;
+                if(sd == 0)
+                {
+                    sd = 0.00000000000001;
+                }
+                
                 foreach (var key in result.Keys)
                     result[key][j] = (result[key][j] - mean) / sd;
             }
@@ -56,11 +76,18 @@ namespace ECO
         private static Dictionary<long, int> InitClustering(int numPoints, int k, int seed, Dictionary<long, PlayerData> rawData)
         {
             Random random = new Random(seed);
-            Dictionary<long, int> clustering = new Dictionary<long, int>(); ;
-            foreach (var key in rawData.Keys)
-                clustering.Add(key, (int)key);
-            foreach (var key in rawData.Keys)
-                clustering[key] = random.Next(0, k);
+            Dictionary<long, int> clustering = new Dictionary<long, int>();
+            Dictionary<long, long> keys = new Dictionary<long, long>();
+            int x = 0;
+            foreach(var key in rawData.Keys)
+            {
+                keys.Add(x, key);
+                x++;
+            }
+            for (int i = 0; i < k; i++)
+                clustering.Add(keys[i], i);
+            for (int i = k; i < numPoints; i++)
+                clustering[keys[i]] = random.Next(0, k);
             return clustering;
         }
 

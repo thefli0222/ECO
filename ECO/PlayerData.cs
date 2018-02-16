@@ -78,11 +78,13 @@ namespace ECO
             {
                 if (x < (allData.Length / 2))
                 {
-                    allData[x] += d / numberCT;
+                    allData[x] = d / numberCT;
+                    x++;
                 }
                 else
                 {
-                    allData[x] += d / numberT;
+                    allData[x] = d / numberT;
+                    x++;
                 }
             }
             return allData;
