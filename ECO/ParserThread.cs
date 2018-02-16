@@ -65,17 +65,15 @@ namespace ECO
                 {
                     playerData.Add(e.Killer.SteamID, new PlayerData(killer.SteamID));
                 }
-
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
 
-                //Is it the frag an entry frag?
-                int i = 0;
-                foreach (Player p in parser.PlayingParticipants)
-                {
-                    if (p.IsAlive) i++;
-                }
-                if (i == 1 && killer.Team == DemoInfo.Team.Terrorist)
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
+                //Killing methods
+                entryFrag(killer, parser);
+                sniperKill(killer, parser);
+                rifleKill(killer, parser);
+                SMGKill(killer, parser);
+                pistolKill(killer, parser);
+
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
@@ -138,6 +136,95 @@ namespace ECO
         public Dictionary<long, PlayerData> getPlayerData()
         {
             return playerData;
+        }
+
+        //Kill methods
+        public void entryFrag(Player killer, DemoParser parser){
+            //Is it the frag an entry frag?
+            int i = 0;
+            foreach (Player p in parser.PlayingParticipants)
+            {
+                if (p.IsAlive) i++;
+            }
+            if (i == 1 && killer.Team == DemoInfo.Team.Terrorist)
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
+        }
+        public void SMGKill(Player killer, DemoParser parser){
+            if (getWeaponType(killer.ActiveWeapon.Weapon) == 1) 
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SMG_FRAG, killer.Team, 1);
+        }
+        public void rifleKill(Player killer, DemoParser parser)
+        {
+            if (getWeaponType(killer.ActiveWeapon.Weapon) == 0)
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.RIFLE_FRAG, killer.Team, 1);
+        }
+        public void sniperKill(Player killer, DemoParser parser)
+        {
+            if (getWeaponType(killer.ActiveWeapon.Weapon) == 2)
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SNIPER_FRAG, killer.Team, 1);
+        }
+        public void pistolKill(Player killer, DemoParser parser)
+        {
+            if (getWeaponType(killer.ActiveWeapon.Weapon) == 3)
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
+        }
+        public int getWeaponType(EquipmentElement e){
+            //0 is rifle, 1 is sniper, 2 is smgs, 3 pistols
+            switch(e) {
+                case EquipmentElement.AK47:
+                    return 0;
+                case EquipmentElement.M4A1:
+                    return 0;
+                case EquipmentElement.M4A4:
+                    return 0;
+                case EquipmentElement.AUG:
+                    return 0;
+                case EquipmentElement.SG556:
+                    return 0;
+                case EquipmentElement.UMP:
+                    return 1;
+                case EquipmentElement.MP7:
+                    return 1;
+                case EquipmentElement.MP9:
+                    return 1;
+                case EquipmentElement.Mac10:
+                    return 1;
+                case EquipmentElement.P90:
+                    return 1;
+                case EquipmentElement.Nova:
+                    return 1;
+                case EquipmentElement.SawedOff:
+                    return 1;
+                case EquipmentElement.Swag7:
+                    return 1;
+                case EquipmentElement.AWP:
+                    return 2;
+                case EquipmentElement.Scout:
+                    return 2;
+                case EquipmentElement.G3SG1:
+                    return 2;
+                case EquipmentElement.Scar20:
+                    return 2;
+                case EquipmentElement.CZ:
+                    return 3;
+                case EquipmentElement.Deagle:
+                    return 3;
+                case EquipmentElement.Glock:
+                    return 3;
+                case EquipmentElement.FiveSeven:
+                    return 3;
+                case EquipmentElement.P250:
+                    return 3;
+                case EquipmentElement.DualBarettas:
+                    return 3;
+                case EquipmentElement.P2000:
+                    return 3;
+                case EquipmentElement.USP:
+                    return 3;
+                case EquipmentElement.Tec9:
+                    return 3;
+            }
+            return -1;
         }
     }
 }
