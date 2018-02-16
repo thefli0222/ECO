@@ -97,16 +97,17 @@ namespace ECO
 
     class MapCache : MapData
     {
+        static int nmbOfStats = Enum.GetNames(typeof(PlayerData.STAT)).Length;
         //Data for the map, this will be used to normalize the data over multiple maps by calculating distance from average on each map.
-        static double[] ctTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        static double[] tTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        static double[] ctTotal = new double[nmbOfStats];
+        static double[] tTotal = new double[nmbOfStats];
         static double ctRoundsTotal = 0;
         static double tRoundsTotal = 0;
 
 
         //Each players stats on a particular map, this will be compared with the map average and result in a cross map normalization.
-        double[] ct = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        double[] t = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        double[] ct = new double[nmbOfStats];
+        double[] t = new double[nmbOfStats];
         double ctRounds = 0;
         double tRounds = 0;
 
@@ -142,8 +143,8 @@ namespace ECO
 
         public override double[] getCTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (ctTotal[x] / ctRoundsTotal - ct[x] / ctRounds) / (ctTotal[x] / ctRoundsTotal);
@@ -153,8 +154,8 @@ namespace ECO
 
         public override double[] getTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (tTotal[x] / tRoundsTotal - t[x] / tRounds) / (tTotal[x] / tRoundsTotal);
@@ -175,16 +176,17 @@ namespace ECO
 
     class MapNuke : MapData
     {
+        static int nmbOfStats = Enum.GetNames(typeof(PlayerData.STAT)).Length;
         //Data for the map, this will be used to normalize the data over multiple maps by calculating distance from average on each map.
-        static double[] ctTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        static double[] tTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        static double[] ctTotal = new double [nmbOfStats];
+        static double[] tTotal = new double[nmbOfStats];
         static double ctRoundsTotal = 0;
         static double tRoundsTotal = 0;
 
 
         //Each players stats on a particular map, this will be compared with the map average and result in a cross map normalization.
-        double[] ct = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        double[] t = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        double[] ct = new double[nmbOfStats];
+        double[] t = new double[nmbOfStats];
         double ctRounds = 0;
         double tRounds = 0;
 
@@ -220,8 +222,8 @@ namespace ECO
 
         public override double[] getCTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (ctTotal[x] / ctRoundsTotal - ct[x] / ctRounds) / (ctTotal[x] / ctRoundsTotal);
@@ -231,8 +233,8 @@ namespace ECO
 
         public override double[] getTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (tTotal[x] / tRoundsTotal - t[x] / tRounds) / (tTotal[x] / tRoundsTotal);
@@ -253,16 +255,17 @@ namespace ECO
 
     class MapInferno : MapData
     {
+        static int nmbOfStats = Enum.GetNames(typeof(PlayerData.STAT)).Length;
         //Data for the map, this will be used to normalize the data over multiple maps by calculating distance from average on each map.
-        static double[] ctTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        static double[] tTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        static double[] ctTotal = new double[nmbOfStats];
+        static double[] tTotal = new double[nmbOfStats];
         static double ctRoundsTotal = 0;
         static double tRoundsTotal = 0;
 
 
         //Each players stats on a particular map, this will be compared with the map average and result in a cross map normalization.
-        double[] ct = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        double[] t = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        double[] ct = new double[nmbOfStats];
+        double[] t = new double[nmbOfStats];
         double ctRounds = 0;
         double tRounds = 0;
 
@@ -298,8 +301,8 @@ namespace ECO
 
         public override double[] getCTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (ctTotal[x] / ctRoundsTotal - ct[x] / ctRounds) / (ctTotal[x] / ctRoundsTotal);
@@ -309,8 +312,8 @@ namespace ECO
 
         public override double[] getTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (tTotal[x] / tRoundsTotal - t[x] / tRounds) / (tTotal[x] / tRoundsTotal);
@@ -331,16 +334,17 @@ namespace ECO
 
     class MapTrain : MapData
     {
+        static int nmbOfStats = Enum.GetNames(typeof(PlayerData.STAT)).Length;
         //Data for the map, this will be used to normalize the data over multiple maps by calculating distance from average on each map.
-        static double[] ctTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        static double[] tTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        static double[] ctTotal = new double[nmbOfStats];
+        static double[] tTotal = new double[nmbOfStats];
         static double ctRoundsTotal = 0;
         static double tRoundsTotal = 0;
 
 
         //Each players stats on a particular map, this will be compared with the map average and result in a cross map normalization.
-        double[] ct = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        double[] t = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        double[] ct = new double[nmbOfStats];
+        double[] t = new double[nmbOfStats];
         double ctRounds = 0;
         double tRounds = 0;
 
@@ -376,8 +380,8 @@ namespace ECO
 
         public override double[] getCTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (ctTotal[x] / ctRoundsTotal - ct[x] / ctRounds) / (ctTotal[x] / ctRoundsTotal);
@@ -387,8 +391,8 @@ namespace ECO
 
         public override double[] getTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (tTotal[x] / tRoundsTotal - t[x] / tRounds) / (tTotal[x] / tRoundsTotal);
@@ -409,16 +413,17 @@ namespace ECO
 
     class MapCobblestone : MapData
     {
+        static int nmbOfStats = Enum.GetNames(typeof(PlayerData.STAT)).Length;
         //Data for the map, this will be used to normalize the data over multiple maps by calculating distance from average on each map.
-        static double[] ctTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        static double[] tTotal = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        static double[] ctTotal = new double[nmbOfStats];
+        static double[] tTotal = new double[nmbOfStats];
         static double ctRoundsTotal = 0;
         static double tRoundsTotal = 0;
 
 
         //Each players stats on a particular map, this will be compared with the map average and result in a cross map normalization.
-        double[] ct = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        double[] t = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        double[] ct = new double[nmbOfStats];
+        double[] t = new double[nmbOfStats];
         double ctRounds = 0;
         double tRounds = 0;
 
@@ -454,8 +459,8 @@ namespace ECO
 
         public override double[] getCTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (ctTotal[x] / ctRoundsTotal - ct[x] / ctRounds) / (ctTotal[x] / ctRoundsTotal);
@@ -465,8 +470,8 @@ namespace ECO
 
         public override double[] getTData()
         {
-            double[] temp = new double[8];
-            for (int x = 0; x < 8; x++)
+            double[] temp = new double[nmbOfStats];
+            for (int x = 0; x < nmbOfStats; x++)
             {
                 if (ctTotal[x] != 0)
                     temp[x] = (tTotal[x] / tRoundsTotal - t[x] / tRounds) / (tTotal[x] / tRoundsTotal);
