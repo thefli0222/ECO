@@ -15,7 +15,7 @@ namespace ECO
 
 
 
-            /*Kmeans kMean = new Kmeans(temp.getPlayerData(), 5);
+            Kmeans kMean = new Kmeans(temp.getPlayerData(), 5);
             String tempString = "";
             for(int x = 0; x < kMean.getCentroids().Length; x++)
             {
@@ -26,7 +26,6 @@ namespace ECO
                     tempString += kMean.getCentroids()[x][i] + " | ";
                 }
                 Console.WriteLine(tempString);
-            }
 
                 {
                     tempString = "";
@@ -37,7 +36,7 @@ namespace ECO
                     }
                     Console.WriteLine(tempString);
                 }
-            }*/
+            }
             Console.ReadKey();
 
 

@@ -54,7 +54,7 @@ namespace ECO
 
         public double[] getFullData()
         {
-            double[] allData = new double[Enum.GetNames(typeof(STAT)).Length];
+            double[] allData = new double[Enum.GetNames(typeof(STAT)).Length*2];
             double numberT = 0, numberCT = 0;
             int x = 0;
             foreach (var k in dataMap.Keys)
