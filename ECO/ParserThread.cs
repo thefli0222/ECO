@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
 using System.Text;
 using System.Threading;
 
@@ -12,23 +14,66 @@ namespace ECO
         private Dictionary<long, PlayerData> playerData;
         public ParserThread(String filePath, String fileType)
         {
-            string[] filePaths = Directory.GetFiles(filePath, fileType);
+            WebClient myWebClient = new WebClient();
+            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
             playerData = new Dictionary<long, PlayerData>();
+            string directoryPath = @"..\ECO\tempmap\";
+
+            DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
+            int count = 0;
             foreach (var fileName in filePaths)
             {
-                getInfoFromFile(fileName);
+                
+                myWebClient.DownloadFile(fileName, @"..\ECO\tempmap\test.dem.gz");
+                foreach (FileInfo fileToDecompress in directorySelected.GetFiles("*.gz"))
+                {
+                    Decompress(fileToDecompress);
+                }
+
+                getInfoFromFile(@"..\ECO\tempmap\test.dem");
+                if(count > 10)
+                {
+                    break;
+                }
+                count++;
             }
             foreach (var k in playerData.Keys){
                 Console.WriteLine(playerData[k]);
                 Console.WriteLine(playerData[k].statString());
             }
         }
+
+        public static void Decompress(FileInfo fileToDecompress)
+        {
+            using (FileStream originalFileStream = fileToDecompress.OpenRead())
+            {
+                string currentFileName = fileToDecompress.FullName;
+                string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+                using (FileStream decompressedFileStream = File.Create(newFileName))
+                {
+                    using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                    {
+                        decompressionStream.CopyTo(decompressedFileStream);
+                        decompressionStream.Close();
+                    }
+                    decompressedFileStream.Close();
+                }
+                originalFileStream.Close();
+                
+            }
+            
+        }
+
+
         public void getInfoFromFile(string fileName)
         {
             Dictionary<string, int> players = new Dictionary<string, int>();
             Boolean hasMatchStarted;
             hasMatchStarted = false;
-            var parser = new DemoParser(File.OpenRead(fileName));
+            var pro = File.OpenRead(fileName);
+            var parser = new DemoParser(pro);
+            
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) => {
                 hasMatchStarted = true;
@@ -132,8 +177,11 @@ namespace ECO
             };
 
 
-            parser.ParseToEnd(); 
-            
+            parser.ParseToEnd();
+
+            pro.Dispose();
+
+
         }
 
         public Dictionary<long, PlayerData> getPlayerData()
@@ -153,22 +201,22 @@ namespace ECO
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
         }
         public void SMGKill(Player killer, DemoParser parser){
-            if (getWeaponType(killer.ActiveWeapon.Weapon) == 1) 
+            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 1) 
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SMG_FRAG, killer.Team, 1);
         }
         public void rifleKill(Player killer, DemoParser parser)
         {
-            if (getWeaponType(killer.ActiveWeapon.Weapon) == 0)
+            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 0)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.RIFLE_FRAG, killer.Team, 1);
         }
         public void sniperKill(Player killer, DemoParser parser)
         {
-            if (getWeaponType(killer.ActiveWeapon.Weapon) == 2)
+            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 2)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SNIPER_FRAG, killer.Team, 1);
         }
         public void pistolKill(Player killer, DemoParser parser)
         {
-            if (getWeaponType(killer.ActiveWeapon.Weapon) == 3)
+            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 3)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
         }
         public int getWeaponType(EquipmentElement e){

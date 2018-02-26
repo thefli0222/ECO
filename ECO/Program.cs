@@ -10,8 +10,8 @@ namespace ECO
         static void Main(string[] args)
         {
             Console.WriteLine(Directory.GetCurrentDirectory() + @"/demos/");
-            string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory() + @"/demos/", "*.dem");
-            ParserThread temp = new ParserThread(Directory.GetCurrentDirectory() + @"/demos/", "*.dem");
+            //string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory() + @"/Demo links/", "*.dem");
+            ParserThread temp = new ParserThread("", "*.dem");
 
 
 
