@@ -12,34 +12,131 @@ namespace ECO
     class ParserThread
     {
         private Dictionary<long, PlayerData> playerData;
+        Boolean isDownloading;
+        Boolean isDone;
+        Boolean isWaitingForDownload;
+        int count;
+        int numberOfFiles;
         public ParserThread(String filePath, String fileType)
         {
-            WebClient myWebClient = new WebClient();
-            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
+            isDownloading = true;
+            isDone = false;
+            isWaitingForDownload = true;
+            count = 0;
+            numberOfFiles = 1;
+
             playerData = new Dictionary<long, PlayerData>();
+
+            string directoryPath = @"..\ECO\tempmap\";
+            DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
+
+            foreach (var file in directorySelected.GetFiles())
+            {
+                file.Delete();
+            }
+
+            Thread downLoadingThread = new Thread(delegate ()
+            {
+                downloadingFilesThread();
+            });
+            downLoadingThread.Start();
+
+
+            Thread outPutThread = new Thread(delegate ()
+            {
+                outPutPrintThread();
+            });
+            outPutThread.Start();
+
+
+            while (!isDone)
+            {
+                isWaitingForDownload = true;
+                while (!isDownloading || directorySelected.GetFiles("test.dem").Length < 1)
+                {
+                    System.Threading.Thread.Sleep(100);
+                }
+                isWaitingForDownload = false;
+                foreach(var file in directorySelected.GetFiles("parsingfile.dem"))
+                {
+                    file.Delete();
+                }
+                while (true)
+                {
+                    try
+                    {
+                        System.IO.File.Move(@"..\ECO\tempmap\test.dem", @"..\ECO\tempmap\parsingfile.dem");
+                    }
+                    catch
+                    {
+                        System.Threading.Thread.Sleep(100);
+                        continue;
+                    }
+                    break;
+                }
+                getInfoFromFile(@"..\ECO\tempmap\parsingfile.dem");
+                
+            }
+            foreach (var k in playerData.Keys){
+                Console.WriteLine(playerData[k]);
+                Console.WriteLine(playerData[k].statString());
+            }
+        }
+
+        public void downloadingFilesThread()
+        {
             string directoryPath = @"..\ECO\tempmap\";
 
             DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
-            int count = 0;
+            WebClient myWebClient = new WebClient();
+            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
+            numberOfFiles = filePaths.Length;
+            count = 0;
             foreach (var fileName in filePaths)
             {
-                
+                isDownloading = true;
                 myWebClient.DownloadFile(fileName, @"..\ECO\tempmap\test.dem.gz");
                 foreach (FileInfo fileToDecompress in directorySelected.GetFiles("*.gz"))
                 {
                     Decompress(fileToDecompress);
                 }
+                isDownloading = false;
+                while (directorySelected.GetFiles("test.dem").Length > 0)
+                {
+                    System.Threading.Thread.Sleep(100);
+                }
 
-                getInfoFromFile(@"..\ECO\tempmap\test.dem");
-                if(count > 10)
+                if (count > 10)
                 {
                     break;
                 }
                 count++;
             }
-            foreach (var k in playerData.Keys){
-                Console.WriteLine(playerData[k]);
-                Console.WriteLine(playerData[k].statString());
+            isDone = true;
+        }
+
+        public void outPutPrintThread() {
+            int currentCount = 0;
+            int startingValue= 0;
+            int numberInHundredSec = 1;
+            var startTime = DateTime.Now;
+
+            while (!isDone) { 
+                if(currentCount == 100)
+                {
+                    numberInHundredSec = count - startingValue;
+                } else if (currentCount == 0)
+                {
+                    startingValue = count;
+                }
+
+                Console.Clear();
+                Console.WriteLine("Is downloading files: " + isDownloading);
+                Console.WriteLine("Is parser working: " + !isWaitingForDownload);
+                Console.WriteLine("Done: " + count + " : " + numberOfFiles + " | " + Math.Round((float) (((float)count) /numberOfFiles)*100,2) + "%");
+                Console.WriteLine("Elapsed time: " + (DateTime.Now - startTime) + " | Estimated time left: " + Math.Round((numberOfFiles - count) / ((float)numberInHundredSec) / 100 * 60,2) + "min");
+                System.Threading.Thread.Sleep(1000);
+                currentCount++;
             }
         }
 
