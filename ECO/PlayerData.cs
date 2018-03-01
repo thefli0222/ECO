@@ -6,7 +6,9 @@ namespace ECO
 {
     public class PlayerData
     {
-        public enum STAT { KILL, DEATH, FLASH, SMOKE, GRANADE, MOLOTOV, STEP, JUMP, ENTRY_FRAG, SMG_FRAG, RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG }
+        public enum STAT { KILL, DEATH, FLASH, SMOKE, GRENADE,
+                            MOLOTOV, STEP, JUMP, ENTRY_FRAG, SMG_FRAG,
+                            RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE }
         //string[] playerNames;
         long steamID;
         Dictionary<string, MapData> dataMap = new Dictionary<string, MapData>();

@@ -12,9 +12,13 @@ namespace ECO
     class ParserThread
     {
         private Dictionary<long, PlayerData> playerData;
+        private Dictionary<long, float> timeOfKill;
         Boolean isDownloading;
         Boolean isDone;
         Boolean isWaitingForDownload;
+
+        float tickRate;
+
         int count;
         int numberOfFiles;
         public ParserThread(String filePath, String fileType)
@@ -26,6 +30,8 @@ namespace ECO
             numberOfFiles = 1;
 
             playerData = new Dictionary<long, PlayerData>();
+            //Used to store the time(in seconds) when a player got his last kill
+            timeOfKill = new Dictionary<long, float>();
 
             string directoryPath = @"..\ECO\tempmap\";
             DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
@@ -174,12 +180,14 @@ namespace ECO
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) => {
                 hasMatchStarted = true;
+                tickRate = parser.TickRate;
             };
-
+                
             parser.RoundEnd += (sender, e) => {
                 if (!hasMatchStarted)
                     return;
 
+                timeOfKill.Clear();
                 foreach(Player p in parser.PlayingParticipants)
                 {
                     if (p.SteamID != 0)
@@ -212,12 +220,21 @@ namespace ECO
                 }
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
 
+                //Store the time(in seconds) when a player last got a kill
+                if (timeOfKill.ContainsKey(killer.SteamID))
+                {
+                    timeOfKill[killer.SteamID] = parser.CurrentTime;
+                }
+                else
+                    timeOfKill.Add(killer.SteamID, parser.CurrentTime);
+
                 //Killing methods
                 entryFrag(killer, parser);
                 sniperKill(killer, parser);
                 rifleKill(killer, parser);
                 SMGKill(killer, parser);
                 pistolKill(killer, parser);
+                tradeKill(killer, parser);
 
             };
 
@@ -270,9 +287,22 @@ namespace ECO
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
 
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRANADE, thrower.Team, 1);
+                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE, thrower.Team, 1);
             };
 
+            parser.PlayerHurt += (sender, e) =>
+            {
+                if (!hasMatchStarted || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
+                    return;
+                if (!playerData.ContainsKey(e.Attacker.SteamID))
+                {
+                    playerData.Add(e.Attacker.SteamID, new PlayerData(e.Attacker.SteamID));
+                }
+                if (e.Weapon.Weapon.Equals(EquipmentElement.HE))
+                {
+                    playerData[e.Attacker.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_DAMAGE, e.Attacker.Team, e.HealthDamage);
+                }
+            };
 
             parser.ParseToEnd();
 
@@ -292,20 +322,23 @@ namespace ECO
             int i = 0;
             foreach (Player p in parser.PlayingParticipants)
             {
-                if (p.IsAlive) i++;
+                if (!p.IsAlive) i++;
             }
             if (i == 1 && killer.Team == DemoInfo.Team.Terrorist)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
         }
+
         public void SMGKill(Player killer, DemoParser parser){
             if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 1) 
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SMG_FRAG, killer.Team, 1);
         }
+
         public void rifleKill(Player killer, DemoParser parser)
         {
             if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 0)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.RIFLE_FRAG, killer.Team, 1);
         }
+
         public void sniperKill(Player killer, DemoParser parser)
         {
             if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 2)
@@ -374,5 +407,18 @@ namespace ECO
             }
             return -1;
         }
+
+
+        
+        public void tradeKill(Player killer, DemoParser parser)
+        {
+            foreach (KeyValuePair<long, float> entry in timeOfKill)
+            {
+                if(entry.Value > (parser.CurrentTime - 2)){
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL, killer.Team, 1);
+                }
+            }
+        }
+
     }
 }
