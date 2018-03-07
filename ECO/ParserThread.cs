@@ -173,6 +173,8 @@ namespace ECO
         {
             Dictionary<string, int> players = new Dictionary<string, int>();
             Boolean hasMatchStarted;
+            //Todo this can be here right?
+            Boolean bombPlanted = false;
             hasMatchStarted = false;
             var pro = File.OpenRead(fileName);
             var parser = new DemoParser(pro);
@@ -182,7 +184,11 @@ namespace ECO
                 hasMatchStarted = true;
                 tickRate = parser.TickRate;
             };
-                
+
+            parser.RoundStart += (sender, e) =>
+            {
+                bombPlanted = false;
+            };
             parser.RoundEnd += (sender, e) => {
                 if (!hasMatchStarted)
                     return;
@@ -235,7 +241,7 @@ namespace ECO
                 SMGKill(killer, parser);
                 pistolKill(killer, parser);
                 tradeKill(killer, parser);
-
+                postPlantKill(killer, parser, bombPlanted);
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
@@ -303,7 +309,18 @@ namespace ECO
                     playerData[e.Attacker.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_DAMAGE, e.Attacker.Team, e.HealthDamage);
                 }
             };
-
+            parser.BombPlanted += (sender, e) =>
+            {
+                bombPlanted = true;
+            };
+            parser.BombDefused += (sender, e) =>
+            {
+                bombPlanted = false;
+            };
+            parser.BombExploded += (sender, e) =>
+            {
+                bombPlanted = false;
+            };
             parser.ParseToEnd();
 
             pro.Dispose();
@@ -347,6 +364,11 @@ namespace ECO
         public void pistolKill(Player killer, DemoParser parser)
         {
             if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 3)
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
+        }
+        public void postPlantKill(Player killer, DemoParser parser, Boolean bombPlanted)
+        {
+            if (bombPlanted)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
         }
         public int getWeaponType(EquipmentElement e){
