@@ -32,8 +32,7 @@ namespace ECO
             playerData = new Dictionary<long, PlayerData>();
             //Used to store the time(in seconds) when a player got his last kill
             timeOfKill = new Dictionary<long, float>();
-
-            string directoryPath = @"..\ECO\tempmap\";
+            string directoryPath = @"../ECO/tempmap/";
             DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
 
             foreach (var file in directorySelected.GetFiles())
@@ -91,17 +90,17 @@ namespace ECO
 
         public void downloadingFilesThread()
         {
-            string directoryPath = @"..\ECO\tempmap\";
+            string directoryPath = @"../ECO/tempmap/";
 
             DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
             WebClient myWebClient = new WebClient();
-            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
+            string[] filePaths = System.IO.File.ReadAllLines(@"../ECO/Demo links/gamelinks.txt");
             numberOfFiles = filePaths.Length;
             count = 0;
             foreach (var fileName in filePaths)
             {
                 isDownloading = true;
-                myWebClient.DownloadFile(fileName, @"..\ECO\tempmap\test.dem.gz");
+                myWebClient.DownloadFile(fileName, @"../ECO/tempmap/test.dem.gz");
                 foreach (FileInfo fileToDecompress in directorySelected.GetFiles("*.gz"))
                 {
                     Decompress(fileToDecompress);
@@ -279,6 +278,7 @@ namespace ECO
                 {
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
+                
                
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH, thrower.Team, 1);
             };
