@@ -13,6 +13,8 @@ namespace ECO
     {
         private Dictionary<long, PlayerData> playerData;
         private Dictionary<long, float> timeOfKill;
+        private Dictionary<long, (float, float)>position;
+        private long tempPos;
         Boolean isDownloading;
         Boolean isDone;
         Boolean isWaitingForDownload;
@@ -32,6 +34,8 @@ namespace ECO
             playerData = new Dictionary<long, PlayerData>();
             //Used to store the time(in seconds) when a player got his last kill
             timeOfKill = new Dictionary<long, float>();
+            //used to store the current position of a player
+            position = new Dictionary<long, (float, float)>();
 
             string directoryPath = @"..\ECO\tempmap\";
             DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
@@ -188,7 +192,21 @@ namespace ECO
             parser.RoundStart += (sender, e) =>
             {
                 bombPlanted = false;
+                //detta ska nog bort härifrån sen, spelare kan inte ha spawnat
+                foreach (Player p in parser.PlayingParticipants)
+                {
+                    if (p.SteamID != 0)
+                    {
+                        if (position.ContainsKey(p.SteamID))
+                        {
+                            position[p.SteamID] = (p.Position.X, p.Position.Y);
+                        }
+                        else
+                            position.Add(p.SteamID, (p.Position.X, p.Position.Y));
+                    }
+                }
             };
+
             parser.RoundEnd += (sender, e) => {
                 if (!hasMatchStarted)
                     return;
@@ -215,7 +233,24 @@ namespace ECO
                 //Console.WriteLine("New round");
             };
 
-            parser.PlayerKilled += (sender, e) =>
+
+
+            parser.TickDone += (sender, e) =>
+            {
+
+                if (parser.CurrentTick % tickRate == 0)
+                {
+                    foreach (Player p in parser.PlayingParticipants)
+                    {
+                        //tempPos = ((position.TryGetValue(p.SteamID)) + ());
+
+                        //position.Add(tempPos, p);
+                    }
+                }
+
+            };
+
+           parser.PlayerKilled += (sender, e) =>
             {
                 if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
                         return;
@@ -295,7 +330,8 @@ namespace ECO
 
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE, thrower.Team, 1);
             };
-
+            
+            
             parser.PlayerHurt += (sender, e) =>
             {
                 if (!hasMatchStarted || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
