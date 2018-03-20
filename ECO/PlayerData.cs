@@ -151,6 +151,12 @@ namespace ECO
                     case "de_train":
                         dataMap.Add(map, new MapTrain());
                         break;
+                    case "de_overpass":
+                        dataMap.Add(map, new MapOverpass());
+                        break;
+                    case "de_dust2":
+                        dataMap.Add(map, new MapDust2());
+                        break;
                 }
                 dataMap[map].addRound(team, number);
             }
