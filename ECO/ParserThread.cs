@@ -14,7 +14,7 @@ namespace ECO
         private Dictionary<long, PlayerData> playerData;
         private Dictionary<long, float> timeOfKill;
         private Dictionary<long, (float, float)>position;
-        private long tempPos;
+        private double tempPos;
         Boolean isDownloading;
         Boolean isDone;
         Boolean isWaitingForDownload;
@@ -194,19 +194,6 @@ namespace ECO
             parser.RoundStart += (sender, e) =>
             {
                 bombPlanted = false;
-                //detta ska nog bort härifrån sen, spelare kan inte ha spawnat
-                foreach (Player p in parser.PlayingParticipants)
-                {
-                    if (p.SteamID != 0)
-                    {
-                        if (position.ContainsKey(p.SteamID))
-                        {
-                            position[p.SteamID] = (p.Position.X, p.Position.Y);
-                        }
-                        else
-                            position.Add(p.SteamID, (p.Position.X, p.Position.Y));
-                    }
-                }
             };
 
             parser.RoundEnd += (sender, e) => {
@@ -239,15 +226,30 @@ namespace ECO
 
             parser.TickDone += (sender, e) =>
             {
-
                 if (parser.CurrentTick % tickRate == 0)
                 {
-                    foreach (Player p in parser.PlayingParticipants)
-                    {
-                        //tempPos = ((position.TryGetValue(p.SteamID)) + ());
+                        foreach (Player p in parser.PlayingParticipants)
+                        {
+                            if (p.SteamID != 0)
+                            {
+                                if (position.ContainsKey(p.SteamID))
+                                {
+                                tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1,2.0)) + Math.Pow((position[key :p.SteamID].Item2), 2.0), 0.5);
+                                
+                                    position[p.SteamID] = (p.Position.X, p.Position.Y);
+
+                                if (tempPos < 400)
+                                {
+                                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (long)tempPos);
+                                }
+                                }
+                                else
+                                    position.Add(p.SteamID, (p.Position.X, p.Position.Y));
+                            }
+                        }
 
                         //position.Add(tempPos, p);
-                    }
+                    
                 }
 
             };
