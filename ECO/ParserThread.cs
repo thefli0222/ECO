@@ -19,7 +19,7 @@ namespace ECO
         Boolean isDone;
         Boolean isWaitingForDownload;
 
-        float tickRate;
+        int tickRate;
 
         int count;
         int numberOfFiles;
@@ -179,6 +179,9 @@ namespace ECO
         {
             Dictionary<string, int> players = new Dictionary<string, int>();
             Boolean hasMatchStarted;
+
+
+            
             //Todo this can be here right?
             Boolean bombPlanted = false;
             hasMatchStarted = false;
@@ -188,8 +191,9 @@ namespace ECO
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) => {
                 hasMatchStarted = true;
-                tickRate = parser.TickRate;
+                tickRate = (int)Math.Ceiling(parser.TickRate);
             };
+
 
             parser.RoundStart += (sender, e) =>
             {
@@ -199,7 +203,6 @@ namespace ECO
             parser.RoundEnd += (sender, e) => {
                 if (!hasMatchStarted)
                     return;
-
                 timeOfKill.Clear();
                 foreach(Player p in parser.PlayingParticipants)
                 {
@@ -224,9 +227,15 @@ namespace ECO
 
 
 
+
+            //Features to be checked after each tick
+            // * check if the movement stat is to be updated
             parser.TickDone += (sender, e) =>
             {
-                if (parser.CurrentTick % tickRate == 0)
+                if (!hasMatchStarted)
+                    return;
+                //if 2 second has passed, calculate distance between old and new position
+                if ((parser.CurrentTick*2) % tickRate == 0)
                 {
                         foreach (Player p in parser.PlayingParticipants)
                         {
@@ -235,11 +244,13 @@ namespace ECO
                                 if (position.ContainsKey(p.SteamID))
                                 {
                                 tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1,2.0)) + Math.Pow((position[key :p.SteamID].Item2), 2.0), 0.5);
-                                
-                                    position[p.SteamID] = (p.Position.X, p.Position.Y);
-
+                                position[p.SteamID] = (p.Position.X, p.Position.Y);
                                 if (tempPos < 400)
                                 {
+                                    if (!playerData.ContainsKey(p.SteamID))
+                                    {
+                                        playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                                    }
                                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (long)tempPos);
                                 }
                                 }
@@ -247,9 +258,6 @@ namespace ECO
                                     position.Add(p.SteamID, (p.Position.X, p.Position.Y));
                             }
                         }
-
-                        //position.Add(tempPos, p);
-                    
                 }
 
             };
