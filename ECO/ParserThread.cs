@@ -6,7 +6,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Threading;
-
+using System.Windows.Input;
 namespace ECO
 {
     class ParserThread
@@ -18,8 +18,11 @@ namespace ECO
         Boolean isDownloading;
         Boolean isDone;
         Boolean isWaitingForDownload;
+        Boolean allFilesParsed;
+        DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-
+        public const int numberOfDownloadingThreads = 5; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 10;
         int tickRate;
 
         int count;
@@ -29,14 +32,25 @@ namespace ECO
             return matchResults;
         }
 
+
         public ParserThread(String filePath, String fileType)
         {
             isDownloading = true;
             isDone = false;
             isWaitingForDownload = true;
+            allFilesParsed = false;
             count = 0;
             numberOfFiles = 1;
             matchResults = new MatchResults();
+            downloadStreamClasses = new DownloadStreamClass[numberOfDownloadingThreads];
+
+            for(int x = 0; x < downloadStreamClasses.Length; x++)
+            {
+                downloadStreamClasses[x] = new DownloadStreamClass();
+            }
+
+
+            Thread[] dowloadingStreamThreads = new Thread[numberOfDownloadingThreads];
 
             playerData = new Dictionary<long, PlayerData>();
             //Used to store the time(in seconds) when a player got his last kill
@@ -44,94 +58,77 @@ namespace ECO
 
             //used to store the current position of a player
             position = new Dictionary<long, (float, float)>();
-            
 
-            string directoryPath = @"../ECO/tempmap/";
-            DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
 
-            foreach (var file in directorySelected.GetFiles())
-            {
-                file.Delete();
-            }
 
-            Thread downLoadingThread = new Thread(delegate ()
-            {
-                downloadingFilesThread();
-            });
-            downLoadingThread.Start();
-
+            bool fileIsGettingDowloaded = false;
+            string[] filePaths = System.IO.File.ReadAllLines(@"../ECO/Demo links/gamelinks.txt");
+            numberOfFiles = filePaths.Length;
+            MemoryStream beingUsed;
 
             Thread outPutThread = new Thread(delegate ()
             {
                 outPutPrintThread();
             });
             outPutThread.Start();
+            Thread parserManagerThread = new Thread(delegate ()
+            {
+                ParserManager();
+            });
+            parserManagerThread.Start();
 
-
-            while (!isDone)
+            foreach(var path in filePaths)
             {
                 isWaitingForDownload = true;
-                while (!isDownloading || directorySelected.GetFiles("test.dem").Length < 1)
+                fileIsGettingDowloaded = false;
+
+                while (!fileIsGettingDowloaded)
                 {
-                    System.Threading.Thread.Sleep(100);
-                }
-                isWaitingForDownload = false;
-                foreach(var file in directorySelected.GetFiles("parsingfile.dem"))
-                {
-                    file.Delete();
-                }
-                while (true)
-                {
-                    try
+
+                    for (int x = 0; x < downloadStreamClasses.Length; x++)
                     {
-                        System.IO.File.Move(@"..\ECO\tempmap\test.dem", @"..\ECO\tempmap\parsingfile.dem");
+                        if (downloadStreamClasses[x].IsDownloading == false && downloadStreamClasses[x].IsReady == false)
+                        {
+                            dowloadingStreamThreads[x] = new Thread(delegate ()
+                            {
+                                downloadStreamClasses[x].DownloadFile(path);
+                            });
+                            dowloadingStreamThreads[x].Start();
+                            fileIsGettingDowloaded = true;
+                            break;
+                        }
                     }
-                    catch
-                    {
-                        System.Threading.Thread.Sleep(100);
-                        continue;
-                    }
+                    System.Threading.Thread.Sleep(100); //Just some delay so nothing crashes
+                }
+                if(allFilesParsed)
+                {
                     break;
                 }
-                getInfoFromFile(@"..\ECO\tempmap\parsingfile.dem");
-                
+
             }
-            foreach (var k in playerData.Keys){
+            isDone = true;
+            foreach (var k in playerData.Keys)
+            {
                 Console.WriteLine(playerData[k]);
                 Console.WriteLine(playerData[k].statString());
             }
         }
 
-        public void downloadingFilesThread()
+        public void ParserManager()
         {
-            string directoryPath = @"../ECO/tempmap/";
-
-            DirectoryInfo directorySelected = new DirectoryInfo(directoryPath);
-            WebClient myWebClient = new WebClient();
-            string[] filePaths = System.IO.File.ReadAllLines(@"../ECO/Demo links/gamelinks.txt");
-            numberOfFiles = filePaths.Length;
-            count = 0;
-            foreach (var fileName in filePaths)
-            {
-                isDownloading = true;
-                myWebClient.DownloadFile(fileName, @"../ECO/tempmap/test.dem.gz");
-                foreach (FileInfo fileToDecompress in directorySelected.GetFiles("*.gz"))
+            while(count < numberOfFiles && count < stopValue) {
+                for (int x = 0; x < downloadStreamClasses.Length; x++)
                 {
-                    Decompress(fileToDecompress);
+                    if (downloadStreamClasses[x].IsReady == true)
+                    {
+                        getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
+                        downloadStreamClasses[x].IsReady = false;
+                        count++;
+                        break;
+                    }
                 }
-                isDownloading = false;
-                while (directorySelected.GetFiles("test.dem").Length > 0)
-                {
-                    System.Threading.Thread.Sleep(100);
-                }
-
-                if (count > 10)
-                {
-                    break;
-                }
-                count++;
             }
-            isDone = true;
+            allFilesParsed = true;
         }
 
         public void outPutPrintThread() {
@@ -150,7 +147,10 @@ namespace ECO
                 }
 
                 Console.Clear();
-                Console.WriteLine("Is downloading files: " + isDownloading);
+                int index = 1;
+                foreach(var downloadStream in downloadStreamClasses) {
+                    Console.WriteLine("Thread " + index++ + " is downloading files: " + downloadStream.IsDownloading);
+                }
                 Console.WriteLine("Is parser working: " + !isWaitingForDownload);
                 Console.WriteLine("Done: " + count + " : " + numberOfFiles + " | " + Math.Round((float) (((float)count) /numberOfFiles)*100,2) + "%");
                 Console.WriteLine("Elapsed time: " + (DateTime.Now - startTime) + " | Estimated time left: " + Math.Round((numberOfFiles - count) / ((float)numberInHundredSec) / 100 * 60,2) + "min");
@@ -159,42 +159,25 @@ namespace ECO
             }
         }
 
-        public static void Decompress(FileInfo fileToDecompress)
+
+
+        public void getInfoFromFile(MemoryStream fileName)
         {
-            using (FileStream originalFileStream = fileToDecompress.OpenRead())
-            {
-                string currentFileName = fileToDecompress.FullName;
-                string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
-
-                using (FileStream decompressedFileStream = File.Create(newFileName))
-                {
-                    using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
-                    {
-                        decompressionStream.CopyTo(decompressedFileStream);
-                        decompressionStream.Close();
-                    }
-                    decompressedFileStream.Close();
-                }
-                originalFileStream.Close();
-                
-            }
-            
-        }
-
-
-        public void getInfoFromFile(string fileName)
-        {
+            isWaitingForDownload = false;
             Dictionary<string, int> players = new Dictionary<string, int>();
             Boolean hasMatchStarted;
-
             long[] ctPlayers = new long[5];
             long[] tPlayers = new long[5];
 
             //Todo this can be here right?
             Boolean bombPlanted = false;
             hasMatchStarted = false;
-            var pro = File.OpenRead(fileName);
-            var parser = new DemoParser(pro);
+            MemoryStream k = new MemoryStream();
+            fileName.Position = 0;
+            fileName.CopyTo(k);
+            k.Position = 0;
+            
+            var parser = new DemoParser(k);
             
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) => {
@@ -401,9 +384,12 @@ namespace ECO
             };
             parser.ParseToEnd();
 
-            pro.Dispose();
+            k.Dispose();
+            k.Close();
 
-
+            fileName.Dispose();
+            fileName.Close();
+            isWaitingForDownload = false;
         }
 
         public Dictionary<long, PlayerData> getPlayerData()
