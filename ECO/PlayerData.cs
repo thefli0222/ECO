@@ -118,6 +118,9 @@ namespace ECO
                     case "de_train":
                         dataMap.Add(map, new MapTrain());
                         break;
+                    case "de_overpass":
+                        dataMap.Add(map, new MapOverpass());
+                        break;
                 }
                 dataMap[map].addData(team, (int)stat, number);
             }
