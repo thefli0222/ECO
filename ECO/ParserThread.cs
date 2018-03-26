@@ -18,11 +18,17 @@ namespace ECO
         Boolean isDownloading;
         Boolean isDone;
         Boolean isWaitingForDownload;
+        private MatchResults matchResults;
 
         int tickRate;
 
         int count;
         int numberOfFiles;
+        public MatchResults GetMatchResults()
+        {
+            return matchResults;
+        }
+
         public ParserThread(String filePath, String fileType)
         {
             isDownloading = true;
@@ -30,6 +36,7 @@ namespace ECO
             isWaitingForDownload = true;
             count = 0;
             numberOfFiles = 1;
+            matchResults = new MatchResults();
 
             playerData = new Dictionary<long, PlayerData>();
             //Used to store the time(in seconds) when a player got his last kill
@@ -180,8 +187,9 @@ namespace ECO
             Dictionary<string, int> players = new Dictionary<string, int>();
             Boolean hasMatchStarted;
 
+            long[] ctPlayers = new long[5];
+            long[] tPlayers = new long[5];
 
-            
             //Todo this can be here right?
             Boolean bombPlanted = false;
             hasMatchStarted = false;
@@ -198,6 +206,22 @@ namespace ECO
             parser.RoundStart += (sender, e) =>
             {
                 bombPlanted = false;
+                if(parser.TScore + parser.CTScore == 0) //Because this will happen the first round the players will be on the opposite side when the game ends
+                {
+                    int ct = 0;
+                    int t = 0;
+                    foreach (var p in parser.PlayingParticipants)
+                    {
+                        if (p.Team == Team.Terrorist)
+                        {
+                            ctPlayers[ct++] = p.SteamID;
+                        }
+                        else if (p.Team == Team.CounterTerrorist)
+                        {
+                            tPlayers[t++] = p.SteamID;
+                        }
+                    }
+                }
             };
 
             parser.RoundEnd += (sender, e) => {
@@ -219,18 +243,23 @@ namespace ECO
                         }
                     }
                 }
+                
                 // We do this in a method-call since we'd else need to duplicate code
                 // The much parameters are there because I simply extracted a method
                 // Sorry for this - you should be able to read it anywys :)
                 //Console.WriteLine("New round");
             };
 
+            parser.WinPanelMatch += (sender, e) => {
+                long[] results = new long[2];
+                results[1] = parser.TScore;
+                results[0] = parser.CTScore;
+                matchResults.AddMatchResult(ctPlayers, tPlayers, results);
+            };
 
-
-
-            //Features to be checked after each tick
-            // * check if the movement stat is to be updated
-            parser.TickDone += (sender, e) =>
+                //Features to be checked after each tick
+                // * check if the movement stat is to be updated
+                parser.TickDone += (sender, e) =>
             {
                 if (!hasMatchStarted)
                     return;

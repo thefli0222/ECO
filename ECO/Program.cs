@@ -37,6 +37,10 @@ namespace ECO
                     Console.WriteLine(tempString);
                 }
             }
+
+            temp.GetMatchResults().ConvertToClassesFromKmeans(kMean);
+            Console.WriteLine(temp.GetMatchResults().AsString());
+
             Console.ReadKey();
 
 
