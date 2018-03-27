@@ -15,6 +15,7 @@ namespace ECO
         private Dictionary<long, float> timeOfKill;
         private Dictionary<long, (float, float)>position;
         private double tempPos;
+        private MapPos mapPos = new MapPos();
         Boolean isDownloading;
         Boolean isDone;
         Boolean isWaitingForDownload;
@@ -62,7 +63,7 @@ namespace ECO
 
 
             bool fileIsGettingDowloaded = false;
-            string[] filePaths = System.IO.File.ReadAllLines(@"../ECO/Demo links/gamelinks.txt");
+            string[] filePaths = System.IO.File.ReadAllLines(@"C:\Users\Algot\Documents\Kandidat\ECO\Demo links\gamelinks.txt");
             numberOfFiles = filePaths.Length;
             MemoryStream beingUsed;
 
@@ -301,6 +302,7 @@ namespace ECO
                 pistolKill(killer, parser);
                 tradeKill(killer, parser);
                 postPlantKill(killer, parser, bombPlanted);
+                positionKill(killer, parser);
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
@@ -390,6 +392,30 @@ namespace ECO
             fileName.Dispose();
             fileName.Close();
             isWaitingForDownload = false;
+        }
+
+        private void positionKill(Player killer, DemoParser parser)
+        {
+            switch(mapPos.getPos(parser.Map,  killer.Position.X, killer.Position.Y, killer.Position.Z))
+            {
+                case 1:
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, killer.Team, 1);
+                    break;
+                case 2:
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, killer.Team, 1);
+                    break;
+                case 3:
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_KILL, killer.Team, 1);
+                    break;
+                case 4:
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_KILL, killer.Team, 1);
+                    break;
+                case 5:
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.MID_KILL, killer.Team, 1);
+                    break;
+                case -1:
+                    return;
+            }
         }
 
         public Dictionary<long, PlayerData> getPlayerData()
