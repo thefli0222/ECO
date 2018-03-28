@@ -9,7 +9,8 @@ namespace ECO
         public enum STAT { KILL, DEATH, FLASH, SMOKE, GRENADE,
                             MOLOTOV, STEP, JUMP, ENTRY_FRAG, SMG_FRAG,
                             RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE,
-                            SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL
+                            SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL, SITE_SPENT,
+                            T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT
                             }
         //string[] playerNames;
         long steamID;

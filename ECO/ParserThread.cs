@@ -254,22 +254,23 @@ namespace ECO
                         {
                             if (p.SteamID != 0)
                             {
-                                if (position.ContainsKey(p.SteamID))
+                            if (!playerData.ContainsKey(p.SteamID))
+                            {
+                                playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                            }
+                            if (position.ContainsKey(p.SteamID))
                                 {
                                 tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1,2.0)) + Math.Pow((position[key :p.SteamID].Item2), 2.0), 0.5);
                                 position[p.SteamID] = (p.Position.X, p.Position.Y);
                                 if (tempPos < 400)
                                 {
-                                    if (!playerData.ContainsKey(p.SteamID))
-                                    {
-                                        playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                                    }
                                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (long)tempPos);
                                 }
                                 }
                                 else
                                     position.Add(p.SteamID, (p.Position.X, p.Position.Y));
-                            }
+                            currentArea(parser, p);
+                        }
                         }
                 }
 
@@ -394,31 +395,67 @@ namespace ECO
             isWaitingForDownload = false;
         }
 
-        private void positionKill(Player killer, DemoParser parser)
+        private void currentArea(DemoParser parser, Player p)
         {
-            switch(mapPos.getPos(parser.Map,  killer.Position.X, killer.Position.Y, killer.Position.Z))
+            switch (mapPos.getPos(parser.Map, p.Position.X, p.Position.Y, p.Position.Z))
             {
                 case 1:
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, killer.Team, 1);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_SPENT, p.Team, 1);
                     break;
                 case 2:
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, killer.Team, 1);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_SPENT, p.Team, 1);
                     break;
                 case 3:
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_KILL, killer.Team, 1);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_SPENT, p.Team, 1);
                     break;
                 case 4:
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_KILL, killer.Team, 1);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_SPENT, p.Team, 1);
                     break;
                 case 5:
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.MID_KILL, killer.Team, 1);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_SPENT, p.Team, 1);
+                    break;
+                case 6:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_SPENT, p.Team, 1);
+                    break;
+                case 7:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.MID_SPENT, p.Team, 1);
                     break;
                 case -1:
                     return;
             }
         }
 
-        public Dictionary<long, PlayerData> getPlayerData()
+        private void positionKill(Player p, DemoParser parser)
+        {
+            switch (mapPos.getPos(parser.Map, p.Position.X, p.Position.Y, p.Position.Z))
+            {
+                case 1:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, p.Team, 1);
+                    break;
+                case 2:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, p.Team, 1);
+                    break;
+                case 3:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_KILL, p.Team, 1);
+                    break;
+                case 4:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_KILL, p.Team, 1);
+                    break;
+                case 5:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_KILL, p.Team, 1);
+                    break;
+                case 6:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_KILL, p.Team, 1);
+                    break;
+                case 7:
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.MID_KILL, p.Team, 1);
+                    break;
+                case -1:
+                    return;
+            }
+            }
+
+            public Dictionary<long, PlayerData> getPlayerData()
         {
             return playerData;
         }

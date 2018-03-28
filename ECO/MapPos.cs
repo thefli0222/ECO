@@ -24,6 +24,8 @@ namespace ECO
                     return trainPosition(x, y, z);
                 case "de_overpass":
                     return overpassPosition(x, y, z);
+                case "de_dust2":
+                    return dust2Position(x, y, z);
             }
             return -1;
         }
@@ -52,16 +54,16 @@ namespace ECO
             }//A CT entry
             else if (x < -1520 && y > -270 && x > -2390 && y < -730)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -2250 && y < -1060 && x > -800 && y > -2630)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x < 530 && y > -950 && x > -1220 && y < -50)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
@@ -88,16 +90,16 @@ namespace ECO
             }//A CT entry
             else if (x > -1060 && y < 1460 && x < -350 && y > 800)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -1100 && y < -150 && x > -430 && y > -1080)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x < -600 && y < 820 && x > -1100 && y > -160)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
@@ -124,16 +126,16 @@ namespace ECO
             }//A CT entry
             else if (x < -1520 && y > -270 && x > -2390 && y < -730)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -2250 && y < -1060 && x > -800 && y > -2630)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x < 530 && y > -950 && x > -1220 && y < -50)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
@@ -159,17 +161,17 @@ namespace ECO
             }//A CT entry
             else if (x < 2730 && y > 740 && x > 1300 && y < 1960)
             {
-
+                return 5;
             }//B CT entry
             else if (x < 2330 && y > 2500 && x > 850 && y < 3520)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x > -420 && y > 750 && x < 160 && y < 900 ||
                         x > 0 && y < 750 && x < 1600 && y > 330)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
@@ -198,16 +200,16 @@ namespace ECO
             }//A CT entry
             else if (x < -1520 && y > -270 && x > -2390 && y < -730)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -2250 && y < -1060 && x > -800 && y > -2630)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x < 530 && y > -950 && x > -1220 && y < -50)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
@@ -233,16 +235,16 @@ namespace ECO
             }//A CT entry
             else if (x > -1800 && y > -1700 && x < -1300 && y < -670)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -1300 && y < -670 && x > -700 && y > -1300)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x > -2800 && y > 400 && x < -1000 && y < 2850)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
@@ -270,21 +272,21 @@ namespace ECO
             }//A CT entry
             else if (x < -1520 && y > -270 && x > -2390 && y < -730)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -2250 && y < -1060 && x > -800 && y > -2630)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x < 530 && y > -950 && x > -1220 && y < -50)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
 
-        private int mapPosition(float x, float y, float z)
+        private int dust2Position(float x, float y, float z)
         {
             return -1;
             //A Site
@@ -307,16 +309,16 @@ namespace ECO
             }//A CT entry
             else if (x < -1520 && y > -270 && x > -2390 && y < -730)
             {
-
+                return 5;
             }//B CT entry
             else if (x < -2250 && y < -1060 && x > -800 && y > -2630)
             {
-                return 5;
+                return 6;
             }
             //Mid
             else if (x < 530 && y > -950 && x > -1220 && y < -50)
             {
-                return 6;
+                return 7;
             }
             return -1;
         }
