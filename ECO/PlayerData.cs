@@ -44,7 +44,7 @@ namespace ECO
                 numberCT += dataMap[k].getCTRounds();
             }
             x = 0;
-            temp += steamID + ": ";
+            //temp += steamID + ": ";
             foreach(double d in t)
             {
                 if (x < (t.Length / 2)){

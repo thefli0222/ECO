@@ -14,8 +14,7 @@ namespace ECO
             ParserThread temp = new ParserThread("", "*.dem");
 
 
-
-            Kmeans kMean = new Kmeans(temp.getPlayerData(), 5);
+            Kmeans kMean = new Kmeans(temp.getPlayerData(), 12);
             String tempString = "";
             for(int x = 0; x < kMean.getCentroids().Length; x++)
             {
@@ -30,16 +29,17 @@ namespace ECO
                 {
                     tempString = "";
                     tempString += x + ": ";
-                    foreach (var value in kMean.getClusters()[x])
-                    {
-                        tempString += value + " | ";
-                    }
+                    if(kMean.getClusters()[x] != null)
+                        foreach (var value in kMean.getClusters()[x])
+                        {
+                            tempString += value + " | ";
+                        }
                     Console.WriteLine(tempString);
                 }
             }
 
             temp.GetMatchResults().ConvertToClassesFromKmeans(kMean);
-            Console.WriteLine(temp.GetMatchResults().AsString());
+            System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
 
             Console.ReadKey();
 
