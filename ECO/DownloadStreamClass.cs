@@ -32,8 +32,9 @@ namespace ECO
             DownloadedFile = new MemoryStream();
         }
 
-        public void DownloadFile(String filePath)
+        public Boolean DownloadFile(String filePath)
         {
+            try {
             /*if(downloadedFile != null) {
                 DownloadedFile.Close();
             }*/
@@ -45,8 +46,13 @@ namespace ECO
                 DownloadedFile = Decompress(stream);
                 //Decompress(stream).CopyTo(DownloadedFile);
             }
+            } catch
+            {
+                return false;
+            }
             IsDownloading = false;
             IsReady = true;
+            return true;
         }
 
         public static MemoryStream Decompress(MemoryStream fileToDecompress)

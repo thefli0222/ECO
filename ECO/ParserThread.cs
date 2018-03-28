@@ -22,10 +22,11 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 5; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 10;
+        public const int numberOfDownloadingThreads = 7; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 500;
         int tickRate;
 
+        int numberOfErrors, numberOfNotFoundFiles;
         int count;
         int numberOfFiles;
         public MatchResults GetMatchResults()
@@ -42,6 +43,8 @@ namespace ECO
             allFilesParsed = false;
             count = 0;
             numberOfFiles = 1;
+            numberOfErrors = 0;
+            numberOfNotFoundFiles = 0;
             matchResults = new MatchResults();
             downloadStreamClasses = new DownloadStreamClass[numberOfDownloadingThreads];
 
@@ -77,7 +80,6 @@ namespace ECO
                 ParserManager();
             });
             parserManagerThread.Start();
-
             foreach(var path in filePaths)
             {
                 isWaitingForDownload = true;
@@ -92,7 +94,12 @@ namespace ECO
                         {
                             dowloadingStreamThreads[x] = new Thread(delegate ()
                             {
-                                downloadStreamClasses[x].DownloadFile(path);
+                                if (!downloadStreamClasses[x].DownloadFile(path))
+                                {
+                                    downloadStreamClasses[x].IsDownloading = false;
+                                    downloadStreamClasses[x].IsReady = false;
+                                    numberOfNotFoundFiles++;
+                                };
                             });
                             dowloadingStreamThreads[x].Start();
                             fileIsGettingDowloaded = true;
@@ -108,21 +115,50 @@ namespace ECO
 
             }
             isDone = true;
-            foreach (var k in playerData.Keys)
+            System.Threading.Thread.Sleep(5000);
+            while (outPutThread.IsAlive || parserManagerThread.IsAlive)
             {
-                Console.WriteLine(playerData[k]);
-                Console.WriteLine(playerData[k].statString());
+                Console.WriteLine("The threads are alive");
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            List<long> removedKeys = new List<long>();
+            lock (this) {
+                foreach (var k in playerData.Keys)
+                {
+                    
+                    
+                    foreach(double s in playerData[k].getFullData())
+                    {
+                        if(s.Equals(double.NaN))
+                        {
+                            Console.WriteLine(s);
+                            Console.WriteLine(playerData[k]);
+                            removedKeys.Add(k);
+                        }
+                    }
+                }
+                foreach(var c in removedKeys)
+                {
+                    playerData.Remove(c);
+                }
             }
         }
 
         public void ParserManager()
         {
-            while(count < numberOfFiles && count < stopValue) {
+            while(count < (numberOfFiles- numberOfNotFoundFiles) && count < stopValue)
+            { //&& count < stopValue) {
                 for (int x = 0; x < downloadStreamClasses.Length; x++)
                 {
                     if (downloadStreamClasses[x].IsReady == true)
                     {
+                        try {
                         getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
+                        } catch
+                        {
+                            numberOfErrors++;
+                        }
                         downloadStreamClasses[x].IsReady = false;
                         count++;
                         break;
@@ -138,7 +174,7 @@ namespace ECO
             int numberInHundredSec = 1;
             var startTime = DateTime.Now;
 
-            while (!isDone) { 
+            while (!allFilesParsed) { 
                 if(currentCount == 100)
                 {
                     numberInHundredSec = count - startingValue;
@@ -154,7 +190,13 @@ namespace ECO
                 }
                 Console.WriteLine("Is parser working: " + !isWaitingForDownload);
                 Console.WriteLine("Done: " + count + " : " + numberOfFiles + " | " + Math.Round((float) (((float)count) /numberOfFiles)*100,2) + "%");
-                Console.WriteLine("Elapsed time: " + (DateTime.Now - startTime) + " | Estimated time left: " + Math.Round((numberOfFiles - count) / ((float)numberInHundredSec) / 100 * 60,2) + "min");
+                if(count > 0) {
+                    Console.WriteLine("Elapsed time: " + (DateTime.Now - startTime) + " | Estimated time left: " + ((DateTime.Now - startTime)/(((float)count) / numberOfFiles) - (DateTime.Now - startTime)));
+                }
+                if (count > 0) {
+                    Console.WriteLine("Number of errors: " + numberOfErrors + "| Succses rate: " + (1-(numberOfErrors/count))*100 + "%");
+                }
+                Console.WriteLine("Number of not found files: " + numberOfNotFoundFiles);
                 System.Threading.Thread.Sleep(1000);
                 currentCount++;
             }
