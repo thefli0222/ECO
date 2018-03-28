@@ -66,7 +66,7 @@ namespace ECO
 
 
             bool fileIsGettingDowloaded = false;
-            string[] filePaths = System.IO.File.ReadAllLines(@"C:\Users\Algot\Documents\Kandidat\ECO\Demo links\gamelinks.txt");
+            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
             numberOfFiles = filePaths.Length;
             MemoryStream beingUsed;
 
