@@ -22,8 +22,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 7; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 500;
+        public const int numberOfDownloadingThreads = 2; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 4;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
@@ -379,13 +379,34 @@ namespace ECO
                 if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
                 Player thrower = e.ThrownBy;
+
+
                 if (!playerData.ContainsKey(thrower.SteamID))
                 {
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
-                
-               
+
+
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH, thrower.Team, 1);
+
+
+                //add duration a player blinded teammates or enemies
+                foreach (Player p in e.FlashedPlayers)
+                {
+                    if (p.FlashDuration > 0.5)
+                    {
+                        if (!playerData.ContainsKey(p.SteamID))
+                            playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+
+                        if (e.ThrownBy.Team == p.Team)
+                            playerData[e.ThrownBy.SteamID].addNumber(parser.Map, PlayerData.STAT.TEAM_DURATION_FLASHED, e.ThrownBy.Team, (long)p.FlashDuration);
+                        else
+                            playerData[e.ThrownBy.SteamID].addNumber(parser.Map, PlayerData.STAT.ENEMY_DURATION_FLASHED, e.ThrownBy.Team, (long)p.FlashDuration);
+                    }
+                    //add duration each player was blinded
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DURATION_FLASHED, p.Team, (long)p.FlashDuration);
+                }
+
             };
 
             parser.ExplosiveNadeExploded += (sender, e) =>
