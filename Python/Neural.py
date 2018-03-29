@@ -14,9 +14,9 @@ new_features = np.zeros((len(features), 2*number_of_classes)) #skapar nya featur
 for i in range(0, len(features)):
 	for j in range(0, 10):
 		if(j < 5):
-			new_features[i,features[i,j].astype(np.int64)] = 1
+			new_features[i,features[i,j].astype(np.int64)] += 0.2
 		else:
-			new_features[i,features[i,j].astype(np.int64)+12] = 1
+			new_features[i,features[i,j].astype(np.int64)+12] += 0.2
 
 
 labels = np.array(np.loadtxt(path_to_data, usecols = (10, 11)))
