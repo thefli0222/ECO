@@ -6,8 +6,11 @@ from sklearn.model_selection import train_test_split #scikitlearn metod som rand
 
 path_to_data = "404lines.txt"
 
+number_of_classes = 12 # ändras så småningom till att utläsas i datafilen
+
 features = np.array(np.loadtxt(path_to_data, usecols = (range(0, 10)))) #skapar features och labels, usecols för att separera kolumner.
-new_features = np.zeros((len(features), 24))
+
+new_features = np.zeros((len(features), 2*number_of_classes)) #skapar nya features med binära inputs för existens av klass.
 for i in range(0, len(features)):
 	for j in range(0, 10):
 		if(j < 5):
