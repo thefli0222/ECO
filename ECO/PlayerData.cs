@@ -6,12 +6,12 @@ namespace ECO
 {
     public class PlayerData
     {
-        public enum STAT { KILL, DEATH, FLASH, SMOKE, GRENADE,
-                            MOLOTOV, STEP, JUMP, ENTRY_FRAG, SMG_FRAG,
+        public enum STAT { KILL, DEATH, FLASH_THROWN, SMOKE_THROWN, GRENADE_THROWN,
+                            MOLOTOV_THROWN, STEP, JUMP, ENTRY_FRAG, SMG_FRAG, //molly, jump and entry not working
                             RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE,
                             SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL, SITE_SPENT,
                             T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT, ENEMY_DURATION_FLASHED, TEAM_DURATION_FLASHED,
-                            DURATION_FLASHED
+                            DURATION_FLASHED, FLASH_SUCCESSFUL
                             }
         //string[] playerNames;
         long steamID;
@@ -57,6 +57,7 @@ namespace ECO
             }
             return temp;
         }
+
 
         public double[] getFullData()
         {

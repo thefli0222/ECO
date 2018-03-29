@@ -15,6 +15,7 @@ namespace ECO
         private Dictionary<long, float> timeOfKill;
         private Dictionary<long, (float, float)>position;
         private double tempPos;
+        private int playersDead;
         private MapPos mapPos = new MapPos();
         Boolean isDownloading;
         Boolean isDone;
@@ -22,8 +23,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 2; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 4;
+        public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 6;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
@@ -231,6 +232,7 @@ namespace ECO
 
             parser.RoundStart += (sender, e) =>
             {
+                playersDead = 0;
                 bombPlanted = false;
                 if(parser.TScore + parser.CTScore == 0) //Because this will happen the first round the players will be on the opposite side when the game ends
                 {
@@ -323,6 +325,7 @@ namespace ECO
                 if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
                         return;
                 Player killer = e.Killer;
+                playersDead ++;
                 if (!playerData.ContainsKey(killer.SteamID))
                 {
                     playerData.Add(e.Killer.SteamID, new PlayerData(killer.SteamID));
@@ -358,10 +361,11 @@ namespace ECO
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
 
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.SMOKE, thrower.Team, 1);
+                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.SMOKE_THROWN, thrower.Team, 1);
             };
 
-            parser.FireNadeEnded += (sender, e) =>
+
+            parser.FireNadeStarted += (sender, e) =>
             {
                 if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
@@ -371,40 +375,42 @@ namespace ECO
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
 
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.MOLOTOV, thrower.Team, 1);
+                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.MOLOTOV_THROWN, thrower.Team, 1);
             };
+
 
             parser.FlashNadeExploded += (sender, e) =>
             {
                 if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
                     return;
                 Player thrower = e.ThrownBy;
-
-
+                
                 if (!playerData.ContainsKey(thrower.SteamID))
                 {
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
 
-
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH, thrower.Team, 1);
-
-
+                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_THROWN, thrower.Team, 1);
+                
                 //add duration a player blinded teammates or enemies
                 foreach (Player p in e.FlashedPlayers)
                 {
-                    if (p.FlashDuration > 0.5)
+                    if (p.FlashDuration > 0.3)
                     {
                         if (!playerData.ContainsKey(p.SteamID))
                             playerData.Add(p.SteamID, new PlayerData(p.SteamID));
 
-                        if (e.ThrownBy.Team == p.Team)
-                            playerData[e.ThrownBy.SteamID].addNumber(parser.Map, PlayerData.STAT.TEAM_DURATION_FLASHED, e.ThrownBy.Team, (long)p.FlashDuration);
+                        if (thrower.Team == p.Team)
+                            playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.TEAM_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
                         else
-                            playerData[e.ThrownBy.SteamID].addNumber(parser.Map, PlayerData.STAT.ENEMY_DURATION_FLASHED, e.ThrownBy.Team, (long)p.FlashDuration);
+                            playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.ENEMY_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
+                        
+                        //add duration each player was blinded
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DURATION_FLASHED, p.Team, (long)p.FlashDuration);
+                       
+                        //increment successful flash counter
+                        playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_SUCCESSFUL, thrower.Team, 1);
                     }
-                    //add duration each player was blinded
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DURATION_FLASHED, p.Team, (long)p.FlashDuration);
                 }
 
             };
@@ -419,7 +425,7 @@ namespace ECO
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
 
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE, thrower.Team, 1);
+                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_THROWN, thrower.Team, 1);
             };
             
             
@@ -526,13 +532,15 @@ namespace ECO
         //Kill methods
         public void entryFrag(Player killer, DemoParser parser){
             //Is it the frag an entry frag?
-            int i = 0;
-            foreach (Player p in parser.PlayingParticipants)
+            //int i = 0;
+            //foreach (Player p in parser.PlayingParticipants)
+            //{
+            //if (!p.IsAlive) i++;
+            //}
+            if (playersDead == 1 && (killer.Team == DemoInfo.Team.Terrorist))
             {
-                if (!p.IsAlive) i++;
-            }
-            if (i == 1 && killer.Team == DemoInfo.Team.Terrorist)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
+            }
         }
 
         public void SMGKill(Player killer, DemoParser parser){
