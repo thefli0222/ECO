@@ -48,10 +48,10 @@ neural_network.add(Activation('relu'))
 neural_network.add(Dense(2)) #output layer för binär klassificering/regression
 neural_network.add(Activation('sigmoid')) #Byt sigmoid till softmax om inte klassificering
 
-optimizer = SGD(lr = 0.01, momentum = 0, decay = 0) #Som sagt optimizern, se import ovan för mer information
+optimizer_function = SGD(lr = 0.01, momentum = 0, decay = 0) #Som sagt optimizern, se import ovan för mer information
 loss_function = 'binary_crossentropy' #costfunktionen, kan ändras till bla. mean_squared_error men denna funkar bättre de flesta fall. Se https://www.tensorflow.org/api_docs/python/tf/keras/losses för samtliga costfunktioner.
 
-neural_network.compile(loss = loss_function, optimizer = optimizer, metrics = ['accuracy']) #kompilerar modellen och lägger till 'accuracy' i printouten i nästa steg.
+neural_network.compile(loss = loss_function, optimizer = optimizer_function, metrics = ['accuracy']) #kompilerar modellen och lägger till 'accuracy' i printouten i nästa steg.
 
 neural_network.fit(training_data, training_labels, epochs = 300, batch_size = 32, verbose = 2) #tränar nätverket, 300 iterationer, ändra verbose till 0 för att inte printa alls, 1 för cool progress bar!
 (loss, accuracy) = neural_network.evaluate(testing_data, testing_labels, batch_size = 64, verbose = 2) #testar nätverket & printar progressen
