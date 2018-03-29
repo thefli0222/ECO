@@ -7,6 +7,15 @@ from sklearn.model_selection import train_test_split #scikitlearn metod som rand
 path_to_data = "404lines.txt"
 
 features = np.array(np.loadtxt(path_to_data, usecols = (range(0, 10)))) #skapar features och labels, usecols för att separera kolumner.
+new_features = np.zeros((len(features), 24))
+for i in range(0, len(features)):
+	for j in range(0, 10):
+		if(j < 5):
+			new_features[i,features[i,j].astype(np.int64)] = 1
+		else:
+			new_features[i,features[i,j].astype(np.int64)+12] = 1
+
+
 labels = np.array(np.loadtxt(path_to_data, usecols = (10, 11)))
 a_wins = []
 b_wins = []
@@ -20,18 +29,18 @@ for x in range(0, len(labels)): #avkommentera och kommentera andra loopen för a
 	else:
 		a_wins.append(0)
 		b_wins.append(1)
-winPercent = np.c_[a_wins, b_wins] #mergar a_wins och b_wins kolumnvis
+win_percent = np.c_[a_wins, b_wins] #mergar a_wins och b_wins kolumnvis
 
-(training_data, testing_data, training_labels, testing_labels) = train_test_split(features, winPercent, test_size=0.2, random_state=1) #Se import ovan, random_state seedar randomiseringen för upprepbara tester.
+(training_data, testing_data, training_labels, testing_labels) = train_test_split(new_features, win_percent, test_size=0.2, random_state=1) #Se import ovan, random_state seedar randomiseringen för upprepbara tester.
 
 neural_network = Sequential() #Se import ovan
 
 
-neural_network.add(Dense(6, input_shape=(10,))) #Första layeret måste specificera input shape, dvs antal inputnoder
+neural_network.add(Dense(13, input_shape=(len(new_features[1]),))) #Första layeret måste specificera input shape, dvs antal inputnoder
 neural_network.add(Activation('relu')) #relu=rectified linear unit > sigmoid för hidden layers
 
-#neural_network.add(Dense(4))  #Ta bort kommentarer för ett andra hidden layer
-#neural_network.add(Activation('relu'))
+neural_network.add(Dense(7))  #Ta bort kommentarer för ett andra hidden layer
+neural_network.add(Activation('relu'))
 
 neural_network.add(Dense(2)) #output layer för binär klassificering/regression
 neural_network.add(Activation('sigmoid')) #Byt sigmoid till softmax om inte klassificering
