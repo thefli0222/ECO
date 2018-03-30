@@ -314,6 +314,7 @@ namespace ECO
                                 else
                                     position.Add(p.SteamID, (p.Position.X, p.Position.Y));
                             currentArea(parser, p);
+
                         }
                         }
                 }
@@ -349,6 +350,7 @@ namespace ECO
                 tradeKill(killer, parser);
                 postPlantKill(killer, parser, bombPlanted);
                 positionKill(killer, parser);
+                pistolRoundKill(killer, parser);
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
@@ -464,6 +466,13 @@ namespace ECO
             isWaitingForDownload = false;
         }
 
+        //TODO detta gäller inte i warmup eller?
+        private void pistolRoundKill(Player p, DemoParser parser)
+        {
+            int score = parser.CTScore + parser.TScore;
+            if (score == 0 || score == 15) playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_ROUND_KILL, p.Team, 1);
+        }
+
         private void currentArea(DemoParser parser, Player p)
         {
             switch (mapPos.getPos(parser.Map, p.Position.X, p.Position.Y, p.Position.Z))
@@ -567,7 +576,7 @@ namespace ECO
         public void postPlantKill(Player killer, DemoParser parser, Boolean bombPlanted)
         {
             if (bombPlanted)
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.POST_PLANT_KILL, killer.Team, 1);
         }
         public int getWeaponType(EquipmentElement e){
             //0 is rifle, 1 is sniper, 2 is smgs, 3 pistols
