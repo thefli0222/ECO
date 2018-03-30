@@ -11,8 +11,9 @@ namespace ECO
                             RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE,
                             SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL, SITE_SPENT,
                             T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT, ENEMY_DURATION_FLASHED, TEAM_DURATION_FLASHED,
-                            DURATION_FLASHED, FLASH_SUCCESSFUL, PISTOL_ROUND_KILL, POST_PLANT_KILL,
-            ALONE
+                            DURATION_FLASHED, FLASH_SUCCESSFUL, PISTOL_ROUND_KILL, POST_PLANT_KILL, ALONE,
+                            EQUIPMENT_DIF_DEATH, EQUIPMENT_DIF_KILL, CROSSHAIR_MOVE_KILL_X, CROSSHAIR_MOVE_KILL_Y
+
         }
         //string[] playerNames;
         long steamID;

@@ -14,6 +14,9 @@ namespace ECO
         private Dictionary<long, PlayerData> playerData;
         private Dictionary<long, float> timeOfKill;
         private Dictionary<long, (float, float)>position;
+        //store the viewDirection (X,Y) of each player
+        private Dictionary<long, (float, float)> viewDirection;
+
         private double tempPos;
         private int playersDead;
         private MapPos mapPos = new MapPos();
@@ -24,7 +27,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 6;
+        public const int stopValue = 20;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
@@ -67,7 +70,7 @@ namespace ECO
 
 
             bool fileIsGettingDowloaded = false;
-            string[] filePaths = System.IO.File.ReadAllLines(@"C:\Users\Algot\Documents\Kandidat\ECO\Demo links\gamelinks.txt");
+            string[] filePaths = System.IO.File.ReadAllLines(@"C:\Users\Oscar\source\repos\ECO\ECO\Demo links\gamelinks.txt");
             numberOfFiles = filePaths.Length;
             MemoryStream beingUsed;
 
@@ -265,10 +268,10 @@ namespace ECO
                             playerData.Add(p.SteamID, new PlayerData(p.SteamID));
                         }
                         playerData[p.SteamID].addRound(parser.Map, p.Team, 1);
-                        if (!p.IsAlive)
-                        {
-                            playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, p.Team, 1);
-                        }
+                        //if (!p.IsAlive)
+                        //{
+                            //playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, p.Team, 1);
+                        //}
                     }
                 }
                 
@@ -288,11 +291,26 @@ namespace ECO
                 //Features to be checked after each tick
                 // * check if the movement stat is to be updated
                 parser.TickDone += (sender, e) =>
-            {
+                {
                 if (!hasMatchStarted)
                     return;
-                //if 2 second has passed, calculate distance between old and new position
-                if ((parser.CurrentTick*2) % tickRate == 0)
+
+                    //every 8th of a tick, store current view direction
+                    if ((parser.CurrentTick) % (tickRate/8) == 0)
+                    {
+                        foreach (Player p in parser.PlayingParticipants)
+                        {
+                            if (viewDirection.ContainsKey(p.SteamID))
+                            {
+                                viewDirection[p.SteamID] = (p.ViewDirectionX, p.ViewDirectionY);
+                            }
+                            else
+                                viewDirection.Add(p.SteamID, (p.ViewDirectionX, p.ViewDirectionY));
+                        }
+                    }
+
+                    //if 2 second has passed, calculate distance between old and new position
+                    if ((parser.CurrentTick) % (tickRate*2) == 0)
                 {
                         foreach (Player p in parser.PlayingParticipants)
                         {
@@ -326,12 +344,37 @@ namespace ECO
                 if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
                         return;
                 Player killer = e.Killer;
+                Player victim = e.Victim;
                 playersDead ++;
+
                 if (!playerData.ContainsKey(killer.SteamID))
                 {
-                    playerData.Add(e.Killer.SteamID, new PlayerData(killer.SteamID));
+                    playerData.Add(killer.SteamID, new PlayerData(killer.SteamID));
                 }
+                if (!playerData.ContainsKey(victim.SteamID))
+                {
+                    playerData.Add(victim.SteamID, new PlayerData(victim.SteamID));
+                }
+
+                //calculate how much killer moved his crosshair 1/8th of a second before the kill
+                long crosshairMovementX = (long) Math.Abs(viewDirection[killer.SteamID].Item1 - killer.ViewDirectionX);
+                long crosshairMovementY = (long) Math.Abs(viewDirection[killer.SteamID].Item2 - killer.ViewDirectionY);
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_X, killer.Team, crosshairMovementX);
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_Y, killer.Team, crosshairMovementY);
+
+
+                //difference in equipment value between victim and killer
+                int equipmentValueDif = killer.CurrentEquipmentValue - victim.CurrentEquipmentValue;
+
+                //add data to killer
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_KILL, killer.Team, equipmentValueDif);
+
+                //add data to victim(killed)
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, victim.Team, 1);
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_DEATH, victim.Team, equipmentValueDif);
+
+
 
                 //Store the time(in seconds) when a player last got a kill
                 if (timeOfKill.ContainsKey(killer.SteamID))
@@ -557,12 +600,6 @@ namespace ECO
 
         //Kill methods
         public void entryFrag(Player killer, DemoParser parser){
-            //Is it the frag an entry frag?
-            //int i = 0;
-            //foreach (Player p in parser.PlayingParticipants)
-            //{
-            //if (!p.IsAlive) i++;
-            //}
             if (playersDead == 1 && (killer.Team == DemoInfo.Team.Terrorist))
             {
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
