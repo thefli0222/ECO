@@ -13,7 +13,7 @@ namespace ECO
     {
         private Dictionary<long, PlayerData> playerData;
         private Dictionary<long, float> timeOfKill;
-        private Dictionary<long, (float, float)>position;
+        private Dictionary<long, (float, float)> position;
         private double tempPos;
         private MapPos mapPos = new MapPos();
         Boolean isDownloading;
@@ -48,7 +48,7 @@ namespace ECO
             matchResults = new MatchResults();
             downloadStreamClasses = new DownloadStreamClass[numberOfDownloadingThreads];
 
-            for(int x = 0; x < downloadStreamClasses.Length; x++)
+            for (int x = 0; x < downloadStreamClasses.Length; x++)
             {
                 downloadStreamClasses[x] = new DownloadStreamClass();
             }
@@ -80,7 +80,7 @@ namespace ECO
                 ParserManager();
             });
             parserManagerThread.Start();
-            foreach(var path in filePaths)
+            foreach (var path in filePaths)
             {
                 isWaitingForDownload = true;
                 fileIsGettingDowloaded = false;
@@ -108,7 +108,7 @@ namespace ECO
                     }
                     System.Threading.Thread.Sleep(100); //Just some delay so nothing crashes
                 }
-                if(allFilesParsed)
+                if (allFilesParsed)
                 {
                     break;
                 }
@@ -126,11 +126,11 @@ namespace ECO
             lock (this) {
                 foreach (var k in playerData.Keys)
                 {
-                    
-                    
-                    foreach(double s in playerData[k].getFullData())
+
+
+                    foreach (double s in playerData[k].getFullData())
                     {
-                        if(s.Equals(double.NaN))
+                        if (s.Equals(double.NaN))
                         {
                             Console.WriteLine(s);
                             Console.WriteLine(playerData[k]);
@@ -138,7 +138,7 @@ namespace ECO
                         }
                     }
                 }
-                foreach(var c in removedKeys)
+                foreach (var c in removedKeys)
                 {
                     playerData.Remove(c);
                 }
@@ -147,14 +147,14 @@ namespace ECO
 
         public void ParserManager()
         {
-            while(count < (numberOfFiles- numberOfNotFoundFiles) && count < stopValue)
+            while (count < (numberOfFiles - numberOfNotFoundFiles) && count < stopValue)
             { //&& count < stopValue) {
                 for (int x = 0; x < downloadStreamClasses.Length; x++)
                 {
                     if (downloadStreamClasses[x].IsReady == true)
                     {
                         try {
-                        getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
+                            getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
                         } catch
                         {
                             numberOfErrors++;
@@ -170,12 +170,12 @@ namespace ECO
 
         public void outPutPrintThread() {
             int currentCount = 0;
-            int startingValue= 0;
+            int startingValue = 0;
             int numberInHundredSec = 1;
             var startTime = DateTime.Now;
 
-            while (!allFilesParsed) { 
-                if(currentCount == 100)
+            while (!allFilesParsed) {
+                if (currentCount == 100)
                 {
                     numberInHundredSec = count - startingValue;
                 } else if (currentCount == 0)
@@ -185,16 +185,16 @@ namespace ECO
 
                 Console.Clear();
                 int index = 1;
-                foreach(var downloadStream in downloadStreamClasses) {
+                foreach (var downloadStream in downloadStreamClasses) {
                     Console.WriteLine("Thread " + index++ + " is downloading files: " + downloadStream.IsDownloading);
                 }
                 Console.WriteLine("Is parser working: " + !isWaitingForDownload);
-                Console.WriteLine("Done: " + count + " : " + numberOfFiles + " | " + Math.Round((float) (((float)count) /numberOfFiles)*100,2) + "%");
-                if(count > 0) {
-                    Console.WriteLine("Elapsed time: " + (DateTime.Now - startTime) + " | Estimated time left: " + ((DateTime.Now - startTime)/(((float)count) / numberOfFiles) - (DateTime.Now - startTime)));
+                Console.WriteLine("Done: " + count + " : " + numberOfFiles + " | " + Math.Round((float)(((float)count) / numberOfFiles) * 100, 2) + "%");
+                if (count > 0) {
+                    Console.WriteLine("Elapsed time: " + (DateTime.Now - startTime) + " | Estimated time left: " + ((DateTime.Now - startTime) / (((float)count) / numberOfFiles) - (DateTime.Now - startTime)));
                 }
                 if (count > 0) {
-                    Console.WriteLine("Number of errors: " + numberOfErrors + "| Succses rate: " + (1-(numberOfErrors/count))*100 + "%");
+                    Console.WriteLine("Number of errors: " + numberOfErrors + "| Succses rate: " + (1 - (numberOfErrors / count)) * 100 + "%");
                 }
                 Console.WriteLine("Number of not found files: " + numberOfNotFoundFiles);
                 System.Threading.Thread.Sleep(1000);
@@ -219,9 +219,9 @@ namespace ECO
             fileName.Position = 0;
             fileName.CopyTo(k);
             k.Position = 0;
-            
+
             var parser = new DemoParser(k);
-            
+
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) => {
                 hasMatchStarted = true;
@@ -232,7 +232,7 @@ namespace ECO
             parser.RoundStart += (sender, e) =>
             {
                 bombPlanted = false;
-                if(parser.TScore + parser.CTScore == 0) //Because this will happen the first round the players will be on the opposite side when the game ends
+                if (parser.TScore + parser.CTScore == 0) //Because this will happen the first round the players will be on the opposite side when the game ends
                 {
                     int ct = 0;
                     int t = 0;
@@ -254,7 +254,7 @@ namespace ECO
                 if (!hasMatchStarted)
                     return;
                 timeOfKill.Clear();
-                foreach(Player p in parser.PlayingParticipants)
+                foreach (Player p in parser.PlayingParticipants)
                 {
                     if (p.SteamID != 0)
                     {
@@ -269,7 +269,7 @@ namespace ECO
                         }
                     }
                 }
-                
+
                 // We do this in a method-call since we'd else need to duplicate code
                 // The much parameters are there because I simply extracted a method
                 // Sorry for this - you should be able to read it anywys :)
@@ -283,70 +283,73 @@ namespace ECO
                 matchResults.AddMatchResult(ctPlayers, tPlayers, results);
             };
 
-                //Features to be checked after each tick
-                // * check if the movement stat is to be updated
-                parser.TickDone += (sender, e) =>
-            {
-                if (!hasMatchStarted)
-                    return;
+            //Features to be checked after each tick
+            // * check if the movement stat is to be updated
+            parser.TickDone += (sender, e) =>
+        {
+            if (!hasMatchStarted)
+                return;
                 //if 2 second has passed, calculate distance between old and new position
-                if ((parser.CurrentTick*2) % tickRate == 0)
-                {
-                        foreach (Player p in parser.PlayingParticipants)
-                        {
-                            if (p.SteamID != 0)
-                            {
-                            if (!playerData.ContainsKey(p.SteamID))
-                            {
-                                playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                            }
-                            if (position.ContainsKey(p.SteamID))
-                                {
-                                tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1,2.0)) + Math.Pow((position[key :p.SteamID].Item2), 2.0), 0.5);
-                                position[p.SteamID] = (p.Position.X, p.Position.Y);
-                                if (tempPos < 400)
-                                {
-                                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (long)tempPos);
-                                }
-                                }
-                                else
-                                    position.Add(p.SteamID, (p.Position.X, p.Position.Y));
-                            currentArea(parser, p);
-                        }
-                        }
-                }
-
-            };
-
-           parser.PlayerKilled += (sender, e) =>
+                if ((parser.CurrentTick * 2) % tickRate == 0)
             {
-                if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
-                        return;
-                Player killer = e.Killer;
-                if (!playerData.ContainsKey(killer.SteamID))
+                foreach (Player p in parser.PlayingParticipants)
                 {
-                    playerData.Add(e.Killer.SteamID, new PlayerData(killer.SteamID));
+                    if (p.SteamID != 0)
+                    {
+                        if (!playerData.ContainsKey(p.SteamID))
+                        {
+                            playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                        }
+                        if (position.ContainsKey(p.SteamID))
+                        {
+                            tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1, 2.0)) + Math.Pow((position[key: p.SteamID].Item2), 2.0), 0.5);
+                            position[p.SteamID] = (p.Position.X, p.Position.Y);
+                            if (tempPos < 400)
+                            {
+                                playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (int)tempPos);
+                            }
+                        }
+                        else
+                            position.Add(p.SteamID, (p.Position.X, p.Position.Y));
+                        //More methods for shit that happens each tick
+
+                        currentArea(parser, p);
+                    }
                 }
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
+            }
+
+        };
+
+            parser.PlayerKilled += (sender, e) =>
+             {
+                 if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
+                     return;
+                 Player killer = e.Killer;
+                 if (!playerData.ContainsKey(killer.SteamID))
+                 {
+                     playerData.Add(e.Killer.SteamID, new PlayerData(killer.SteamID));
+                 }
+                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
 
                 //Store the time(in seconds) when a player last got a kill
                 if (timeOfKill.ContainsKey(killer.SteamID))
-                {
-                    timeOfKill[killer.SteamID] = parser.CurrentTime;
-                }
-                else
-                    timeOfKill.Add(killer.SteamID, parser.CurrentTime);
+                 {
+                     timeOfKill[killer.SteamID] = parser.CurrentTime;
+                 }
+                 else
+                     timeOfKill.Add(killer.SteamID, parser.CurrentTime);
 
                 //Killing methods
                 entryFrag(killer, parser);
-                sniperKill(killer, parser);
-                rifleKill(killer, parser);
-                SMGKill(killer, parser);
-                pistolKill(killer, parser);
-                tradeKill(killer, parser);
-                postPlantKill(killer, parser, bombPlanted);
-                positionKill(killer, parser);
-            };
+                 sniperKill(killer, parser);
+                 rifleKill(killer, parser);
+                 SMGKill(killer, parser);
+                 pistolKill(killer, parser);
+                 tradeKill(killer, parser);
+                 postPlantKill(killer, parser, bombPlanted);
+                 positionKill(killer, parser);
+                 pistolRound(killer, parser);
+             };
 
             parser.SmokeNadeEnded += (sender, e) =>
             {
@@ -383,8 +386,8 @@ namespace ECO
                 {
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
-                
-               
+
+
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH, thrower.Team, 1);
             };
 
@@ -400,8 +403,8 @@ namespace ECO
 
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE, thrower.Team, 1);
             };
-            
-            
+
+
             parser.PlayerHurt += (sender, e) =>
             {
                 if (!hasMatchStarted || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
@@ -435,6 +438,14 @@ namespace ECO
             fileName.Dispose();
             fileName.Close();
             isWaitingForDownload = false;
+        }
+
+        private void pistolRound(Player killer, DemoParser parser)
+        {
+            if (parser.TScore + parser.CTScore == 0 || parser.TScore + parser.CTScore == 15)
+            {
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_ROUND_FRAG, killer.Team, 1);
+            }
         }
 
         private void currentArea(DemoParser parser, Player p)
