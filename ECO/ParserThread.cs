@@ -314,7 +314,7 @@ namespace ECO
                                 else
                                     position.Add(p.SteamID, (p.Position.X, p.Position.Y));
                             currentArea(parser, p);
-
+                            distanceFromPlayers(parser, p, parser.PlayingParticipants);
                         }
                         }
                 }
@@ -464,6 +464,23 @@ namespace ECO
             fileName.Dispose();
             fileName.Close();
             isWaitingForDownload = false;
+        }
+
+        private void distanceFromPlayers(DemoParser parser, Player currentPlayer, IEnumerable<Player> playingParticipants)
+        {
+            foreach (Player p in playingParticipants)
+            {
+                if (p.SteamID == currentPlayer.SteamID) continue;
+                playerData[currentPlayer.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE, p.Team, distance(currentPlayer, p));
+            };
+        }
+
+        private long distance(Player currentPlayer, Player p)
+        {
+            return (long)(Math.Sqrt(
+                Math.Pow(currentPlayer.Position.X - p.Position.X, 2) +
+                Math.Pow(currentPlayer.Position.Y - p.Position.Y, 2) +
+                Math.Pow(currentPlayer.Position.Z - p.Position.Z, 2)));
         }
 
         //TODO detta gäller inte i warmup eller?
