@@ -18,10 +18,15 @@ namespace ECO
         //string[] playerNames;
         long steamID;
         Dictionary<string, MapData> dataMap = new Dictionary<string, MapData>();
+        List<String> gameList;
+        long[] currentStats;
+        String map;
         
         public PlayerData(long steamID)
         {
             this.steamID = steamID;
+            currentStats = new long[Enum.GetNames(typeof(STAT)).Length * 2 + 2]; // For all stats and also the 2 diffrent rounds counter ct and t
+            gameList = new List<string>();
         }
 
         public string statString()
@@ -131,6 +136,12 @@ namespace ECO
                 }
                 dataMap[map].addData(team, (int)stat, number);
             }
+            if(team == DemoInfo.Team.CounterTerrorist) {
+                currentStats[((int)stat) + 2] += number;
+             } else
+            {
+                currentStats[((int)stat) + 2 + Enum.GetNames(typeof(STAT)).Length] += number;
+            }
 
         }
         public void addRound(string map, DemoInfo.Team team, long number)
@@ -170,9 +181,33 @@ namespace ECO
                 }
                 dataMap[map].addRound(team, number);
             }
+            if (team == DemoInfo.Team.CounterTerrorist)
+            {
+                currentStats[0] += number;
+            }
+            else
+            {
+                currentStats[1] += number;
+            }
+            this.map = map;
 
         }
 
+        public String saveGame() {
+            String tempString = "";
+
+            foreach(long value in currentStats)
+            {
+                tempString += value + "|";
+            }
+            tempString += map + "|" + steamID;
+
+            gameList.Add(tempString);
+            currentStats = new long[Enum.GetNames(typeof(STAT)).Length * 2 + 2];
+            return tempString;
+
+        }
+    
 
     }
 }

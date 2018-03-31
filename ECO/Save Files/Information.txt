@@ -1,0 +1,1 @@
+Stores the parsed file names and the information of each game. This is to optimize parsing and speed up the testing.

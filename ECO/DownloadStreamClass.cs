@@ -20,10 +20,12 @@ namespace ECO
         private Boolean isDownloading;
         private MemoryStream downloadedFile;
         private Boolean isReady;
+        private String gameLink;
 
         public MemoryStream DownloadedFile { get => downloadedFile; set => downloadedFile = value; }
         public bool IsDownloading { get => isDownloading; set => isDownloading = value; }
         public bool IsReady { get => isReady; set => isReady = value; }
+        public string GameLink { get => gameLink; set => gameLink = value; }
 
         public DownloadStreamClass()
         {
@@ -34,6 +36,7 @@ namespace ECO
 
         public Boolean DownloadFile(String filePath)
         {
+            gameLink = filePath;
             try {
             /*if(downloadedFile != null) {
                 DownloadedFile.Close();

@@ -14,6 +14,8 @@ namespace ECO
         private Dictionary<long, PlayerData> playerData;
         private Dictionary<long, float> timeOfKill;
         private Dictionary<long, (float, float)>position;
+        private List<String> parsedFiles;
+        private List<String> parsedGameData;
         //store the viewDirection (X,Y) of each player
         private Dictionary<long, (float, float)> viewDirection;
 
@@ -27,7 +29,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 20;
+        public const int stopValue = 10;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
@@ -45,12 +47,24 @@ namespace ECO
             isDone = false;
             isWaitingForDownload = true;
             allFilesParsed = false;
+
+            viewDirection = new Dictionary<long, (float, float)>();
+
+            parsedFiles = new List<String>();
+            parsedFiles.AddRange(System.IO.File.ReadAllLines(@"..\ECO\Save Files\parsedlinks.txt"));
+
+            parsedGameData = new List<String>();
+            parsedGameData.AddRange(System.IO.File.ReadAllLines(@"..\ECO\Save Files\parsedgames.txt"));
+
             count = 0;
             numberOfFiles = 1;
             numberOfErrors = 0;
             numberOfNotFoundFiles = 0;
             matchResults = new MatchResults();
+
             downloadStreamClasses = new DownloadStreamClass[numberOfDownloadingThreads];
+
+            
 
             for(int x = 0; x < downloadStreamClasses.Length; x++)
             {
@@ -70,9 +84,38 @@ namespace ECO
 
 
             bool fileIsGettingDowloaded = false;
-            string[] filePaths = System.IO.File.ReadAllLines(@"C:\Users\Oscar\source\repos\ECO\ECO\Demo links\gamelinks.txt");
+            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
             numberOfFiles = filePaths.Length;
             MemoryStream beingUsed;
+
+
+            foreach (String game in parsedGameData)
+            {
+                string[] tempStringArray = game.Split("|");
+                long steamID = long.Parse(tempStringArray[tempStringArray.Length - 1]);
+                string map = tempStringArray[tempStringArray.Length - 2];
+                if (!playerData.ContainsKey(steamID))
+                {
+                    playerData.Add(steamID, new PlayerData(steamID));
+                }
+
+                for (int x = 2; x < tempStringArray.Length - 2; x++)
+                {
+                    if (x < (tempStringArray.Length / 2))
+                    {
+                        playerData[steamID].addNumber(map, (PlayerData.STAT)(x - 2), Team.CounterTerrorist, long.Parse(tempStringArray[x]));
+                    }
+                    else
+                    {
+                        playerData[steamID].addNumber(map, (PlayerData.STAT)(x - (tempStringArray.Length / 2)), Team.Terrorist, long.Parse(tempStringArray[x]));
+                    }
+
+                }
+                playerData[steamID].addRound(map, Team.CounterTerrorist, long.Parse(tempStringArray[0]));
+                playerData[steamID].addRound(map, Team.Terrorist, long.Parse(tempStringArray[1]));
+
+            }
+
 
             Thread outPutThread = new Thread(delegate ()
             {
@@ -88,10 +131,10 @@ namespace ECO
             {
                 isWaitingForDownload = true;
                 fileIsGettingDowloaded = false;
-
+                if (!parsedFiles.Contains(path)) {
                 while (!fileIsGettingDowloaded)
                 {
-
+                    
                     for (int x = 0; x < downloadStreamClasses.Length; x++)
                     {
                         if (downloadStreamClasses[x].IsDownloading == false && downloadStreamClasses[x].IsReady == false)
@@ -112,7 +155,11 @@ namespace ECO
                     }
                     System.Threading.Thread.Sleep(100); //Just some delay so nothing crashes
                 }
-                if(allFilesParsed)
+                } else
+                {
+                    count++;
+                }
+                if (allFilesParsed)
                 {
                     break;
                 }
@@ -157,12 +204,13 @@ namespace ECO
                 {
                     if (downloadStreamClasses[x].IsReady == true)
                     {
-                        try {
+                        //try {
                         getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
-                        } catch
+                        //} catch
                         {
-                            numberOfErrors++;
+                            //numberOfErrors++;
                         }
+                        parsedFiles.Add(downloadStreamClasses[x].GameLink);
                         downloadStreamClasses[x].IsReady = false;
                         count++;
                         break;
@@ -203,6 +251,9 @@ namespace ECO
                 Console.WriteLine("Number of not found files: " + numberOfNotFoundFiles);
                 System.Threading.Thread.Sleep(1000);
                 currentCount++;
+
+                File.WriteAllLines(@"..\ECO\Save Files\parsedlinks.txt", parsedFiles);
+
             }
         }
 
@@ -286,6 +337,16 @@ namespace ECO
                 results[1] = parser.TScore;
                 results[0] = parser.CTScore;
                 matchResults.AddMatchResult(ctPlayers, tPlayers, results);
+                foreach(long player in ctPlayers)
+                {
+                    parsedGameData.Add(playerData[player].saveGame());
+                }
+                foreach (long player in tPlayers)
+                {
+                    parsedGameData.Add(playerData[player].saveGame());
+                }
+
+                File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
             };
 
                 //Features to be checked after each tick
