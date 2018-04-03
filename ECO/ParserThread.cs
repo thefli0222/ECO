@@ -21,6 +21,7 @@ namespace ECO
 
         private double tempPos;
         private int playersDead;
+        private float roundStartTime;
         private MapPos mapPos = new MapPos();
         Boolean isDownloading;
         Boolean isDone;
@@ -286,6 +287,7 @@ namespace ECO
 
             parser.RoundStart += (sender, e) =>
             {
+                roundStartTime = parser.CurrentTime;
                 playersDead = 0;
                 bombPlanted = false;
                 if(parser.TScore + parser.CTScore == 0) //Because this will happen the first round the players will be on the opposite side when the game ends
@@ -393,7 +395,7 @@ namespace ECO
                                 else
                                     position.Add(p.SteamID, (p.Position.X, p.Position.Y));
                             currentArea(parser, p);
-                            distanceFromPlayers(parser, p, parser.PlayingParticipants);
+                                playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_SPENT, p.Team, distanceFromClosestPlayer(parser, p, parser.PlayingParticipants)); 
                         }
                         }
                 }
@@ -429,10 +431,14 @@ namespace ECO
 
                 //add data to killer
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_KILL, killer.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_KILL, killer.Team, distanceFromClosestPlayer(parser, killer, parser.PlayingParticipants));
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_KILL, killer.Team, equipmentValueDif);
 
                 //add data to victim(killed)
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, victim.Team, 1);
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_DEATH, victim.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_DEATH, victim.Team, distanceFromClosestPlayer(parser, victim, parser.PlayingParticipants));
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_DEATH, victim.Team, equipmentValueDif);
 
 
@@ -570,13 +576,17 @@ namespace ECO
             isWaitingForDownload = false;
         }
 
-        private void distanceFromPlayers(DemoParser parser, Player currentPlayer, IEnumerable<Player> playingParticipants)
+        private long distanceFromClosestPlayer(DemoParser parser, Player currentPlayer, IEnumerable<Player> playingParticipants)
         {
+            long smallestDistance = 0;
             foreach (Player p in playingParticipants)
             {
+                if (p.Team == currentPlayer.Team) continue;
                 if (p.SteamID == currentPlayer.SteamID) continue;
-                playerData[currentPlayer.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE, p.Team, distance(currentPlayer, p));
+                long currentDistance = distance(currentPlayer, p);
+                if (smallestDistance > currentDistance) smallestDistance = currentDistance;
             };
+            return smallestDistance;
         }
 
         private long distance(Player currentPlayer, Player p)
