@@ -304,6 +304,11 @@ namespace ECO
                         {
                             tPlayers[t++] = p.SteamID;
                         }
+                        if (!playerData.ContainsKey(p.SteamID))
+                        {
+                            playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                        }
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.AMOUNT_OF_MONEY, p.Team, p.Money);
                     }
                 }
             };
@@ -369,9 +374,10 @@ namespace ECO
                             }
                             else
                                 viewDirection.Add(p.SteamID, (p.ViewDirectionX, p.ViewDirectionY));
+                            //Check if the players are crouching.
+                            if(p.IsDucking) playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CROUCH, p.Team, 1);
                         }
                     }
-
                     //if 2 second has passed, calculate distance between old and new position
                     if ((parser.CurrentTick) % (tickRate*2) == 0)
                 {
@@ -452,6 +458,7 @@ namespace ECO
                     timeOfKill.Add(killer.SteamID, parser.CurrentTime);
 
                 //Killing methods
+                killFromBehind(killer, victim, parser); //TODO
                 entryFrag(killer, parser);
                 sniperKill(killer, parser);
                 rifleKill(killer, parser);
@@ -574,6 +581,13 @@ namespace ECO
             fileName.Dispose();
             fileName.Close();
             isWaitingForDownload = false;
+        }
+
+        //TODO
+        private void killFromBehind(Player killer, Player victim, DemoParser parser)
+        {
+            Console.WriteLine(killer.ViewDirectionX);
+            //if(killer.ViewDirectionX)
         }
 
         private long distanceFromClosestPlayer(DemoParser parser, Player currentPlayer, IEnumerable<Player> playingParticipants)
