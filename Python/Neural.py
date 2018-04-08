@@ -2,30 +2,36 @@ from tensorflow.python.keras.layers import Activation, Dense #import för layer 
 from tensorflow.python.keras.models import Sequential #skapar ett objekt för att bygga det neurala nätverket på
 from tensorflow.python.keras.optimizers import SGD #SGD=stochastic gradient descent, mer effektiv än vanlig gradient descent, se https://www.tensorflow.org/api_docs/python/tf/keras/optimizers för samtliga optimizers
 import numpy as np #För linjär algebra
-from sklearn.model_selection import train_test_split #scikitlearn metod som randomizar datan för training vs testing i 4 vektorer
 
 path_to_data = "404lines.txt"
 
 classification = True #klassificering eller regression
-hidden_layers = 1  #antal hidden layers
+hidden_layers = 2  #antal hidden layers
 
 with open(path_to_data) as f: #Antalet klasser utläses i första raden på inputfilen, se 404lines.txt för exempel.
     number_of_classes = int(f.readline()) 
 
-features = np.array(np.loadtxt(path_to_data, usecols = (range(0, 10)), skiprows = 1)) #skapar features och labels, usecols för att separera kolumner.
+data = np.array(np.loadtxt(path_to_data, skiprows = 1)) # Läs in data
+np.random.shuffle(data) #randomiza datan för att slumpa training/testing/validation data
+features, labels = data[:, :-2], data[:, (-2,-1)] #splitta i features och labels
 
-new_features = np.zeros((len(features), 2*number_of_classes)) #skapar nya features med binära inputs för existens av klass.
-for i in range(0, len(features)):
+matches = len(features)
+
+new_features = np.zeros((matches, 2*number_of_classes)) #skapar nya features med binära inputs för existens av klass.
+for i in range(0, matches):
 	for j in range(0, 10):
 		if(j < 5):
 			new_features[i,features[i,j].astype(np.int64)] += 0.2
 		else:
-			new_features[i,features[i,j].astype(np.int64)+12] += 0.2
+			new_features[i,features[i,j].astype(np.int64)+number_of_classes] += 0.2
 
 with open("newfeatures.txt", "w") as f: # skapar fil med nya inputs för inspektion
 	f.write("".join(str(e) for e in new_features.tolist()))
 
-labels = np.array(np.loadtxt(path_to_data, usecols = (10, 11), skiprows = 1)) #skapar labelsen
+training_data = new_features[:int(matches*0.6)]
+testing_data = new_features[int(matches*0.6):int(matches*0.8)]
+validation_data = new_features[int(matches*0.8):]
+
 a_wins = []
 b_wins = []
 
@@ -34,7 +40,7 @@ if(classification == False):
 	output_activation = "softmax"
 	loss_function = "mean_squared_error"
 
-	for x in range(0, len(labels)):
+	for x in range(0, matches):
 		a_wins.append(labels[x, 0] / (labels[x, 1] + labels[x, 0]))
 		b_wins.append(labels[x, 1] / (labels[x, 1] + labels[x, 0]))
 #Regression END
@@ -44,7 +50,7 @@ if(classification == True):
 	output_activation = "sigmoid"
 	loss_function = "binary_crossentropy"
 
-	for x in range(0, len(labels)):
+	for x in range(0, matches):
 		if(labels[x, 0] / (labels[x , 1] + labels[x, 0]) > 0.5):
 			a_wins.append(1)
 			b_wins.append(0)
@@ -55,7 +61,9 @@ if(classification == True):
 
 win_percent = np.c_[a_wins, b_wins] #mergar a_wins och b_wins kolumnvis
 
-(training_data, testing_data, training_labels, testing_labels) = train_test_split(new_features, win_percent, test_size=0.25, random_state=1) #Se import ovan, random_state seedar randomiseringen för upprepbara tester.
+training_labels = win_percent[:int(matches*0.6)]
+testing_labels = win_percent[int(matches*0.6):int(matches*0.8)]
+validation_labels = win_percent[int(matches*0.8):]
 
 neural_network = Sequential() #Se import ovan
 
