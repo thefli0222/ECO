@@ -6,9 +6,13 @@ from sklearn.model_selection import train_test_split #scikitlearn metod som rand
 
 path_to_data = "404lines.txt"
 
-number_of_classes = 12 # ändras så småningom till att utläsas i datafilen
+classification = True #klassificering eller regression
+hidden_layers = 1  #antal hidden layers
 
-features = np.array(np.loadtxt(path_to_data, usecols = (range(0, 10)))) #skapar features och labels, usecols för att separera kolumner.
+with open(path_to_data) as f: #Antalet klasser utläses i första raden på inputfilen, se 404lines.txt för exempel.
+    number_of_classes = int(f.readline()) 
+
+features = np.array(np.loadtxt(path_to_data, usecols = (range(0, 10)), skiprows = 1)) #skapar features och labels, usecols för att separera kolumner.
 
 new_features = np.zeros((len(features), 2*number_of_classes)) #skapar nya features med binära inputs för existens av klass.
 for i in range(0, len(features)):
@@ -18,43 +22,62 @@ for i in range(0, len(features)):
 		else:
 			new_features[i,features[i,j].astype(np.int64)+12] += 0.2
 
+with open("newfeatures.txt", "w") as f: # skapar fil med nya inputs för inspektion
+	f.write("".join(str(e) for e in new_features.tolist()))
 
-labels = np.array(np.loadtxt(path_to_data, usecols = (10, 11)))
+labels = np.array(np.loadtxt(path_to_data, usecols = (10, 11), skiprows = 1)) #skapar labelsen
 a_wins = []
 b_wins = []
-#for x in range(0, len(labels)): #avkommentera och kommentera andra loopen för att få varje output som antal vinster för lag a/b dividerat med totala antal matcher spelade. NOTERA förändring i activation och loss_function
-#	winRateA.append(labels[x, 0] / (labels[x, 1] + labels[x, 0]))
-#	winRateB.append(labels[x, 1] / (labels[x, 1] + labels[x, 0]))
-for x in range(0, len(labels)): #avkommentera och kommentera andra loopen för att få varje output som vektorer på formen [1 0]/[0 1] för a vinst/b vinst. NOTERA förändring i activation och loss_function
-	if(labels[x, 0] / (labels[x , 1] + labels[x, 0]) > 0.5):
-		a_wins.append(1)
-		b_wins.append(0)
-	else:
-		a_wins.append(0)
-		b_wins.append(1)
+
+#Regression START
+if(classification == False):
+	output_activation = "softmax"
+	loss_function = "mean_squared_error"
+
+	for x in range(0, len(labels)):
+		a_wins.append(labels[x, 0] / (labels[x, 1] + labels[x, 0]))
+		b_wins.append(labels[x, 1] / (labels[x, 1] + labels[x, 0]))
+#Regression END
+
+#Klassificering START
+if(classification == True):
+	output_activation = "sigmoid"
+	loss_function = "binary_crossentropy"
+
+	for x in range(0, len(labels)):
+		if(labels[x, 0] / (labels[x , 1] + labels[x, 0]) > 0.5):
+			a_wins.append(1)
+			b_wins.append(0)
+		else:
+			a_wins.append(0)
+			b_wins.append(1)
+#Klassificering END
+
 win_percent = np.c_[a_wins, b_wins] #mergar a_wins och b_wins kolumnvis
 
-(training_data, testing_data, training_labels, testing_labels) = train_test_split(new_features, win_percent, test_size=0.2, random_state=1) #Se import ovan, random_state seedar randomiseringen för upprepbara tester.
+(training_data, testing_data, training_labels, testing_labels) = train_test_split(new_features, win_percent, test_size=0.25, random_state=1) #Se import ovan, random_state seedar randomiseringen för upprepbara tester.
 
 neural_network = Sequential() #Se import ovan
 
+neural_network.add(Dense(number_of_classes+1, input_shape=(2*number_of_classes,))) #input layer
+neural_network.add(Activation("relu"))
 
-neural_network.add(Dense(13, input_shape=(len(new_features[1]),))) #Första layeret måste specificera input shape, dvs antal inputnoder
-neural_network.add(Activation('relu')) #relu=rectified linear unit > sigmoid för hidden layers
+if(hidden_layers > 1):
 
-neural_network.add(Dense(7))  #Ta bort kommentarer för ett andra hidden layer
-neural_network.add(Activation('relu'))
+	for i in range(1,hidden_layers):
+		neural_network.add(Dense(number_of_classes+1))
+		neural_network.add(Activation("relu"))
 
 neural_network.add(Dense(2)) #output layer för binär klassificering/regression
-neural_network.add(Activation('sigmoid')) #Byt sigmoid till softmax om inte klassificering
+neural_network.add(Activation(output_activation))
 
-optimizer_function = SGD(lr = 0.01, momentum = 0, decay = 0) #Som sagt optimizern, se import ovan för mer information
-loss_function = 'binary_crossentropy' #costfunktionen, kan ändras till bla. mean_squared_error men denna funkar bättre de flesta fall. Se https://www.tensorflow.org/api_docs/python/tf/keras/losses för samtliga costfunktioner.
+optimizer = SGD(lr = 0.01, momentum = 0, decay = 0) #Som sagt optimizern, se import ovan för mer information
 
-neural_network.compile(loss = loss_function, optimizer = optimizer_function, metrics = ['accuracy']) #kompilerar modellen och lägger till 'accuracy' i printouten i nästa steg.
+neural_network.compile(loss = loss_function, optimizer = optimizer, metrics = ["accuracy"]) #kompilerar modellen och lägger till 'accuracy' i printouten i nästa steg.
 
 neural_network.fit(training_data, training_labels, epochs = 300, batch_size = 32, verbose = 2) #tränar nätverket, 300 iterationer, ändra verbose till 0 för att inte printa alls, 1 för cool progress bar!
 (loss, accuracy) = neural_network.evaluate(testing_data, testing_labels, batch_size = 64, verbose = 2) #testar nätverket & printar progressen
+
 print("\n Loss function on test data = {:.4f}, Accuracy on test data = {:.4f}%".format(loss, accuracy * 100)) #printar ut cost/accuracyn på testvektorerna
 neural_network.summary() #printar ut nätverkets noder och kanter
 
