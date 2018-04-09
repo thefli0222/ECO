@@ -318,7 +318,7 @@ namespace ECO
             foreach (long key in allPoints.Keys)
             {
                 double[] point = allPoints[key];
-                clusterAndPos.Add(i, new List<double[]>());
+                //clusterAndPos.Add(i, new List<double[]>());
                 disY = Distance(point, pointY);
                 disO = Distance(point, origo);
 
@@ -327,13 +327,7 @@ namespace ECO
 
                 double[] Temp = { X, Y };
                 double[] TempNegative = { -X, Y };
-                if (i == 2)
-                {
-                    pointXxY[0] = X;
-                    pointXxY[1] = Y;
-                }
-                else if (i > 2)
-                {
+
                     if (Math.Abs(Distance(pointXxY, Temp) - Distance(point, pointX)) < Math.Abs(Distance(pointXxY, TempNegative) - Distance(point, pointX)))
                     {
                         //Temp = Temp;
@@ -344,7 +338,7 @@ namespace ECO
                         Temp = TempNegative;
                         Console.WriteLine("Not correct dis");
                     }
-                }
+
 
 
                 clusterAndPos[clustering[key]].Add(Temp);
@@ -352,11 +346,11 @@ namespace ECO
                 Console.WriteLine("Key: " + key + "Cluster: " + clustering[key]);
 
                 Console.WriteLine("X: " + X + " Y: " + Y + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY));
-                i++;
+                //i++;
 
             }
 
-            return null;
+            return clusterAndPos;
   }
 
 static void ShowClustered(double[][] data, int[] clustering,

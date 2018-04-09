@@ -30,7 +30,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 10;
+        public const int stopValue = 30;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
@@ -41,6 +41,13 @@ namespace ECO
             return matchResults;
         }
 
+
+        public int[] getStats()
+        {
+            int[] s = { numberOfErrors, numberOfNotFoundFiles, count };
+            return s;
+
+        }
 
         public ParserThread(String filePath, String fileType)
         {
