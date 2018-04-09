@@ -10,8 +10,14 @@ namespace ECO
         private double[][] centroids;
         private static long theKey;
         private Dictionary<long, int> clustering;
+        private Dictionary<long, double[]> allPoints;
         public Kmeans(Dictionary<long, PlayerData> rawData, int k)
         {
+            if(k < 3)
+            {
+                k = 3;
+            }
+            allPoints = new Dictionary<long, double[]>();
             Dictionary<long, double[]> data = Normalized(rawData);
             bool changed = true; bool success = true;
             clustering = InitClustering(data.Keys.Count, k, 0, rawData);
@@ -25,6 +31,7 @@ namespace ECO
                 changed = UpdateClustering(data, clustering, centroids);
             }
             Console.WriteLine("Stop");
+            allPoints = data;
         }
 
         public Dictionary<int, ArrayList> getClusters()
@@ -177,6 +184,84 @@ namespace ECO
             foreach (var key in newClustering.Keys)
                 clustering[key] = newClustering[key];
             return true; // no zero-counts and at least one change
+        }
+
+        public Dictionary<int, List<double[]>> getClustersAs2DPoints()
+        {
+
+            Dictionary<int, List<double[]>> clusterAndPos = new Dictionary<int, List<double[]>>();
+            if (allPoints == null)
+            {
+                return null;
+            }
+            double[] origo = centroids[0];
+            double[] pointY = centroids[1];
+            double[] pointX = centroids[2];
+
+            double distanceY = Distance(origo, pointY);
+            double[] origoXY = { 0, 0 };
+            double[] pointYxY = { 0, distanceY };
+
+            int i = 0;
+            double disY;
+            double disO;
+
+            double Y;
+            double X;
+
+            foreach(double[] cluster in centroids)
+            {
+                clusterAndPos.Add(i, new List<double[]>());
+
+                disY = Distance(cluster, pointY);
+                disO = Distance(cluster, origo);
+
+
+
+                /* (0 - X) ^ 2 + (distanceY - Y) ^ 2 = disY ^ 2;
+
+                 X = -sqrt(disY ^ 2 - (distanceY - Y) ^ 2);
+
+                 X^2 = disY^2 - (distanceY - Y) ^ 2
+
+                 (distanceY - Y) ^ 2 = disY^2 - X^2
+
+                  Y = -sqrt(disY^2 - X^2) - distanceY;
+
+
+                 (X) = -sqrt((disY ^ 2 - distanceY ^ 2 + disO ^ 2)/2);
+
+                 (0 - X) ^ 2 + (0 - Y) ^ 2 = disO ^ 2;
+                 (0-X)^2 = disO ^ 2 - (0 - Y)^2
+
+                 sqrt(disO ^ 2 - (0 - Y) ^ 2) = -X
+                 Y = -sqrt(disO ^ 2 - (0 - X) ^ 2);
+
+                 X = -sqrt(disY ^ 2 - (distanceY + sqrt(disO ^ 2 - (0 - X) ^ 2)) ^ 2); */
+
+
+                X = -Math.Sqrt(Math.Abs((Math.Pow(disY, 2) - Math.Pow(distanceY, 2) + Math.Pow(disO, 2))));
+                //Y = +Math.Sqrt(Math.Abs(Math.Pow(disO, 2) - Math.Pow(X, 2)));
+
+                Y = -Math.Sqrt(Math.Abs(Math.Pow(disY,2) - Math.Pow(X,2))) - distanceY;
+                //Y = -sqrt(disY ^ 2 - X ^ 2) - distanceY;
+
+                double[] Temp = {X,Y};
+
+                clusterAndPos[i].Add(Temp);
+
+                Console.WriteLine("X: " + X + " Y: " + Y + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY));
+                i++;
+            }
+
+
+
+
+
+
+
+
+            return null;
         }
 
 
