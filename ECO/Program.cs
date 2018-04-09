@@ -7,6 +7,7 @@ namespace ECO
 {
     class Program
     {
+        static int numberOfClusters = 6;
         static void Main(string[] args)
         {
             Console.WriteLine(Directory.GetCurrentDirectory() + @"/demos/");

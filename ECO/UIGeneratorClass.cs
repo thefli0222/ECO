@@ -108,6 +108,8 @@ namespace ECO
             int B = 30;
             for(int x=0; x < number; x++)
             {
+                colours.Add(x, "'rgba(" + Math.Round(R *(0.5/(i+1) + 0.5),0) + "," + Math.Round(G * (0.5/(i+1)+0.5),0) + "," + Math.Round(B * (0.5/(i+1)+0.5),0) + ", 1)'");
+                if ((x+1) % 6 == 0)
                 {
                     i++;
                 }
@@ -131,6 +133,7 @@ namespace ECO
                 {
                     R = 255;
                 }
+                else if (R == 255 && G == 255 && B == 30)
                 {
                     G = 30;
                 }
