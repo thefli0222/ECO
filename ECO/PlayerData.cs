@@ -6,16 +6,28 @@ namespace ECO
 {
     public class PlayerData
     {
-        public enum STAT { KILL, DEATH, FLASH, SMOKE, GRENADE,
-                            MOLOTOV, STEP, JUMP, ENTRY_FRAG, SMG_FRAG,
-                            RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE }
+        public enum STAT { KILL, DEATH, FLASH_THROWN, SMOKE_THROWN, GRENADE_THROWN,
+                            MOLOTOV_THROWN, STEP, CROUCH, ENTRY_FRAG, SMG_FRAG, //molly and entry not working
+                            RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE,
+                            SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL, SITE_SPENT,
+                            T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT, ENEMY_DURATION_FLASHED, TEAM_DURATION_FLASHED,
+                            DURATION_FLASHED, FLASH_SUCCESSFUL, PISTOL_ROUND_KILL, POST_PLANT_KILL, ALONE_KILL, ALONE_SPENT,
+                            EQUIPMENT_DIF_DEATH, EQUIPMENT_DIF_KILL, CROSSHAIR_MOVE_KILL_X, CROSSHAIR_MOVE_KILL_Y,
+                            TIME_OF_KILL, TIME_OF_DEATH, ALONE_DEATH, AMOUNT_OF_MONEY, KILL_FROM_BEHIND //todo kill from behind
+
+        }
         //string[] playerNames;
         long steamID;
         Dictionary<string, MapData> dataMap = new Dictionary<string, MapData>();
+        List<String> gameList;
+        long[] currentStats;
+        String map;
         
         public PlayerData(long steamID)
         {
             this.steamID = steamID;
+            currentStats = new long[Enum.GetNames(typeof(STAT)).Length * 2 + 2]; // For all stats and also the 2 diffrent rounds counter ct and t
+            gameList = new List<string>();
         }
 
         public string statString()
@@ -41,7 +53,7 @@ namespace ECO
                 numberCT += dataMap[k].getCTRounds();
             }
             x = 0;
-            temp += steamID + ": ";
+            //temp += steamID + ": ";
             foreach(double d in t)
             {
                 if (x < (t.Length / 2)){
@@ -53,6 +65,7 @@ namespace ECO
             }
             return temp;
         }
+
 
         public double[] getFullData()
         {
@@ -118,8 +131,17 @@ namespace ECO
                     case "de_train":
                         dataMap.Add(map, new MapTrain());
                         break;
+                    case "de_overpass":
+                        dataMap.Add(map, new MapOverpass());
+                        break;
                 }
                 dataMap[map].addData(team, (int)stat, number);
+            }
+            if(team == DemoInfo.Team.CounterTerrorist) {
+                currentStats[((int)stat) + 2] += number;
+             } else
+            {
+                currentStats[((int)stat) + 2 + Enum.GetNames(typeof(STAT)).Length] += number;
             }
 
         }
@@ -151,12 +173,42 @@ namespace ECO
                     case "de_train":
                         dataMap.Add(map, new MapTrain());
                         break;
+                    case "de_overpass":
+                        dataMap.Add(map, new MapOverpass());
+                        break;
+                    case "de_dust2":
+                        dataMap.Add(map, new MapDust2());
+                        break;
                 }
                 dataMap[map].addRound(team, number);
             }
+            if (team == DemoInfo.Team.CounterTerrorist)
+            {
+                currentStats[0] += number;
+            }
+            else
+            {
+                currentStats[1] += number;
+            }
+            this.map = map;
 
         }
 
+        public String saveGame() {
+            String tempString = "";
+
+            foreach(long value in currentStats)
+            {
+                tempString += value + "|";
+            }
+            tempString += map + "|" + steamID;
+
+            gameList.Add(tempString);
+            currentStats = new long[Enum.GetNames(typeof(STAT)).Length * 2 + 2];
+            return tempString;
+
+        }
+    
 
     }
 }

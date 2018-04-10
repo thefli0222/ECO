@@ -7,6 +7,7 @@ namespace ECO
 {
     class Program
     {
+        static int numberOfClusters = 6;
         static void Main(string[] args)
         {
             Console.WriteLine(Directory.GetCurrentDirectory() + @"/demos/");
@@ -14,8 +15,7 @@ namespace ECO
             ParserThread temp = new ParserThread("", "*.dem");
 
 
-
-            Kmeans kMean = new Kmeans(temp.getPlayerData(), 5);
+            Kmeans kMean = new Kmeans(temp.getPlayerData(), numberOfClusters);
             String tempString = "";
             for(int x = 0; x < kMean.getCentroids().Length; x++)
             {
@@ -30,13 +30,34 @@ namespace ECO
                 {
                     tempString = "";
                     tempString += x + ": ";
-                    foreach (var value in kMean.getClusters()[x])
-                    {
-                        tempString += value + " | ";
-                    }
+                    if(kMean.getClusters()[x] != null)
+                        foreach (var value in kMean.getClusters()[x])
+                        {
+                            tempString += value + " | ";
+                        }
                     Console.WriteLine(tempString);
                 }
             }
+
+            Dictionary<int, List<double[]>> pointsIn2D = new Dictionary<int, List<double[]>>();
+
+            pointsIn2D = kMean.getClustersAs2DPoints();
+
+            foreach(var key in pointsIn2D.Keys)
+            {
+                Console.WriteLine("X" + " " + "Y");
+                foreach (var p in pointsIn2D[key])
+                {
+                    Console.WriteLine(p[0] + " " + p[1]);
+                }
+            }
+
+            temp.GetMatchResults().ConvertToClassesFromKmeans(kMean);
+            System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
+
+            UIGeneratorClass UI = new UIGeneratorClass(pointsIn2D, kMean.getCentroids(), temp.getStats());
+            UI.generateHTML();
+
             Console.ReadKey();
 
 

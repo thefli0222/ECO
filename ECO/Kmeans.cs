@@ -10,8 +10,13 @@ namespace ECO
         private double[][] centroids;
         private static long theKey;
         private Dictionary<long, int> clustering;
+        private Dictionary<long, double[]> allPoints;
         public Kmeans(Dictionary<long, PlayerData> rawData, int k)
         {
+           if (k < 3)        {
+                k = 3;
+          }
+
             Dictionary<long, double[]> data = Normalized(rawData);
             bool changed = true; bool success = true;
             clustering = InitClustering(data.Keys.Count, k, 0, rawData);
@@ -25,6 +30,7 @@ namespace ECO
                 changed = UpdateClustering(data, clustering, centroids);
             }
             Console.WriteLine("Stop");
+            allPoints = data;
         }
 
         public Dictionary<int, ArrayList> getClusters()
@@ -231,7 +237,123 @@ namespace ECO
             if (newLine) Console.WriteLine("\n");
         }
 
-        static void ShowClustered(double[][] data, int[] clustering,
+          public Dictionary<int, List<double[]>> getClustersAs2DPoints()
+  {
+      Dictionary<int, List<double[]>> clusterAndPos = new Dictionary<int, List<double[]>>();
+      if (allPoints == null)
+      {
+          return null;
+      }
+      double[] origo = centroids[0];
+      double[] pointY = centroids[1];
+      double[] pointX = centroids[2];
+
+      double distanceY = Distance(origo, pointY);
+      double[] origoXY = { 0, 0 };
+      double[] pointYxY = { 0, distanceY };
+      double[] pointXxY = { 0, 0 };
+
+
+            int i = 0;
+      double disY;
+      double disO;
+
+      double Y;
+      double X;
+
+
+
+      foreach(double[] cluster in centroids)
+      {
+          clusterAndPos.Add(i, new List<double[]>());
+          disY = Distance(cluster, pointY);
+          disO = Distance(cluster, origo);
+                /* X^2+(distanceY - Y)^2 = disY^2;
+                Y = distanceY - sqrt(disY^2 - X^2)
+                  X^2  + Y^2 = disO^2;
+                 X^2 = disO^2 - (distanceY - sqrt(disY^2 - X^2))^2
+                 X = -(i sqrt(distanceY^4 - 2 distanceY^2 disO^2 - 2 distanceY^2 disY^2 + disO^4 - 2 disO^2 disY^2 + disY^4))/(2*distanceY)
+                X = -(-sqrt(Math.Abs(distanceY^4 - 2 distanceY^2 disO^2 - 2 distanceY^2 disY^2 + disO^4 - 2 disO^2 disY^2 + disY^4))/(2*distanceY)
+                 X = -sqrt(disY ^ 2 - (distanceY - Y) ^ 2);
+                 X^2 = disY^2 - (distanceY - Y) ^ 2
+                 (distanceY - Y) ^ 2 = disY^2 - X^2
+                  Y = -sqrt(disY^2 - X^2) - distanceY;
+                 (X) = -sqrt((disY ^ 2 - distanceY ^ 2 + disO ^ 2)/2);
+                 (0 - X) ^ 2 + (0 - Y) ^ 2 = disO ^ 2;
+                 (0-X)^2 = disO ^ 2 - (0 - Y)^2
+                 sqrt(disO ^ 2 - (0 - Y) ^ 2) = -X
+                 Y = -sqrt(disO ^ 2 - (0 - X) ^ 2);
+                 X = -sqrt(disY ^ 2 - (distanceY + sqrt(disO ^ 2 - (0 - X) ^ 2)) ^ 2); */
+                
+                X = -(-Math.Sqrt(Math.Abs(Math.Pow(distanceY, 4) - (2 * Math.Pow(distanceY, 2) * Math.Pow(disO, 2)) - (2 * Math.Pow(distanceY, 2) * Math.Pow(disY, 2)) + Math.Pow(disO, 4) - (2 * Math.Pow(disO, 2) * Math.Pow(disY, 2)) + Math.Pow(disY, 4)))) / (2 * distanceY);
+                Y = distanceY - Math.Sqrt(Math.Abs(Math.Pow(disY, 2) - Math.Pow(X, 2)));
+
+                double[] Temp = { X, Y };
+                double[] TempNegative = { -X, Y };
+                if (i == 2)
+                {
+                    pointXxY[0] = X;
+                    pointXxY[1] = Y;
+                } else if (i > 2)
+                {
+                    if (Math.Abs(Distance(pointXxY,Temp) - Distance(cluster, pointX)) < Math.Abs(Distance(pointXxY, TempNegative) - Distance(cluster, pointX)))
+                    {
+                        //Temp = Temp;
+                        Console.WriteLine("Correct dis");
+                    } else
+                    {
+                        Temp = TempNegative;
+                        Console.WriteLine("Not correct dis");
+                    }
+                }
+
+
+          clusterAndPos[i].Add(Temp);
+
+          Console.WriteLine("X: " + X + " Y: " + Y + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY));
+          i++;
+
+      }
+
+            foreach (long key in allPoints.Keys)
+            {
+                double[] point = allPoints[key];
+                //clusterAndPos.Add(i, new List<double[]>());
+                disY = Distance(point, pointY);
+                disO = Distance(point, origo);
+
+                X = -(-Math.Sqrt(Math.Abs(Math.Pow(distanceY, 4) - (2 * Math.Pow(distanceY, 2) * Math.Pow(disO, 2)) - (2 * Math.Pow(distanceY, 2) * Math.Pow(disY, 2)) + Math.Pow(disO, 4) - (2 * Math.Pow(disO, 2) * Math.Pow(disY, 2)) + Math.Pow(disY, 4)))) / (2 * distanceY);
+                Y = distanceY - Math.Sqrt(Math.Abs(Math.Pow(disY, 2) - Math.Pow(X, 2)));
+
+                double[] Temp = { X, Y };
+                double[] TempNegative = { -X, Y };
+
+                    if (Math.Abs(Distance(pointXxY, Temp) - Distance(point, pointX)) < Math.Abs(Distance(pointXxY, TempNegative) - Distance(point, pointX)))
+                    {
+                        //Temp = Temp;
+                        Console.WriteLine("Correct dis");
+                    }
+                    else
+                    {
+                        Temp = TempNegative;
+                        Console.WriteLine("Not correct dis");
+                    }
+
+
+
+                clusterAndPos[clustering[key]].Add(Temp);
+
+                Console.WriteLine("Key: " + key + "Cluster: " + clustering[key]);
+
+                Console.WriteLine("X: " + X + " Y: " + Y + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY));
+                //i++;
+
+            }
+
+            return clusterAndPos;
+  }
+
+static void ShowClustered(double[][] data, int[] clustering,
           int numClusters, int decimals)
         {
             for (int k = 0; k < numClusters; ++k)
