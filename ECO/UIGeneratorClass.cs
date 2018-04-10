@@ -10,10 +10,12 @@ namespace ECO
         string html;
         Dictionary<int, string> colours;
         Dictionary<int, List<double[]>> points;
+        double[][] centroidsEn;
         int[] stats;
         public UIGeneratorClass(Dictionary<int, List<double[]>> allPoints, double[][] centroids, int[] parseStats)
         {
             stats = parseStats;
+            centroidsEn = centroids;
             colours = new Dictionary<int, string>();
             generateColours(centroids.Length);
             points = allPoints;
@@ -86,7 +88,32 @@ namespace ECO
 
         private string ClusterStatsGenerator()
         {
-            return "";
+            string temp = "";
+            string tempValues = "";
+            string tempColour = "";
+            string tempLables = "";
+            int i = 1;
+
+            foreach(var ping in Enum.GetNames(typeof(PlayerData.STAT))){
+                tempLables += "\"" + ping.ToString() + "\",";
+            }
+
+            foreach (var c in centroidsEn) {
+                tempValues = "";
+                tempColour = "";
+                foreach (var value in c)
+                {
+                    tempValues += Math.Round(value, 5).ToString(new CultureInfo("en-US")) + ",";
+                    if (value >= 0)
+                        tempColour += "'rgba(30,"+ 255 +",30, 1)',";
+                    else
+                        tempColour += "'rgba(" + 255 + ",30,30, 1)',";
+                }
+                temp += "\n \n var ctx = document.getElementById(\"bar" + i + "\"); var bar1Chart = new Chart(ctx, { type: 'bar', data: { datasets: [{ data: [" + tempValues + "],backgroundColor: [" + tempColour + "],}],labels: [" + tempLables +"]},options:{responsive: true, legend: false, " +
+                "title: { display: false, text: 'The distrubution of classes' }, animation: { animateScale: true, animateRotate: true } } });";
+                i++;
+            }
+            return temp;
         }
 
 
@@ -97,7 +124,13 @@ namespace ECO
 
         private string ClusterStats()
         {
-            return "";
+            string temp = "";
+
+            for(int x = 0; x < centroidsEn.Length; x++)
+            {
+                temp += "<h6> Cluster " + (x + 1) + ":</h6>" + "<canvas class=\"my-4 chartjs-render-monitor\" id=\"bar"+ (x+1) + "\" width=\"3106\" height=\"1311\" style=\"display: block; height: 874px; width: 2071px; \"></canvas>";
+            }
+            return temp;
         }
 
         private void generateColours(int number)
