@@ -244,9 +244,28 @@ namespace ECO
       {
           return null;
       }
-      double[] origo = centroids[0];
-      double[] pointY = centroids[1];
-      double[] pointX = centroids[2];
+
+
+
+      double[] origo = new double[centroids[0].Length];
+      double[] pointY = new double[centroids[0].Length];
+      double[] pointX = new double[centroids[0].Length];
+
+            for(int x=0; x<origo.Length; x++)
+            {
+                origo[x] = 0;
+                if (x < (origo.Length / 2))
+                {
+                    pointY[x] = 1;
+                    pointX[x] = 0;
+
+                } else
+                {
+                    pointY[x] = 0;
+                    pointX[x] = 1;
+                }
+
+            }
 
       double distanceY = Distance(origo, pointY);
       double[] origoXY = { 0, 0 };
