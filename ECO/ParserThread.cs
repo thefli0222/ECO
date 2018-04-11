@@ -30,7 +30,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 30;
+        public const int stopValue = 8;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
@@ -590,10 +590,24 @@ namespace ECO
             isWaitingForDownload = false;
         }
 
-        //TODO
+        //checks the angle difference between killer and victim to see if they were killed from behind
+        
+            
+        //TODO, start checking if they're behind when they first start fiering
         private void killFromBehind(Player killer, Player victim, DemoParser parser)
         {
-            Console.WriteLine(killer.ViewDirectionX);
+            float killerAngle = killer.ViewDirectionX;
+            float victimAngle = victim.ViewDirectionX;
+
+            if (Math.Abs(killerAngle - victimAngle) > 270 || Math.Abs(killerAngle - victimAngle) < 90)
+            {
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL_FROM_BEHIND, killer.Team, 1);
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.KILLED_FROM_BEHIND, victim.Team, 1);
+
+            }
+
+            //Console.WriteLine("x: " + killer.ViewDirectionX);
+            //Console.WriteLine("y: " + killer.ViewDirectionY);
             //if(killer.ViewDirectionX)
         }
 

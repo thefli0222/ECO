@@ -13,8 +13,8 @@ namespace ECO
                             T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT, ENEMY_DURATION_FLASHED, TEAM_DURATION_FLASHED,
                             DURATION_FLASHED, FLASH_SUCCESSFUL, PISTOL_ROUND_KILL, POST_PLANT_KILL, ALONE_KILL, ALONE_SPENT,
                             EQUIPMENT_DIF_DEATH, EQUIPMENT_DIF_KILL, CROSSHAIR_MOVE_KILL_X, CROSSHAIR_MOVE_KILL_Y,
-                            TIME_OF_KILL, TIME_OF_DEATH, ALONE_DEATH, AMOUNT_OF_MONEY, KILL_FROM_BEHIND //todo kill from behind
-
+                            TIME_OF_KILL, TIME_OF_DEATH, ALONE_DEATH, AMOUNT_OF_MONEY, KILL_FROM_BEHIND, 
+                            KILLED_FROM_BEHIND
         }
         //string[] playerNames;
         long steamID;
