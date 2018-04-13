@@ -12,8 +12,14 @@ namespace ECO
         Dictionary<int, List<double[]>> points;
         double[][] centroidsEn;
         int[] stats;
-        public UIGeneratorClass(Dictionary<int, List<double[]>> allPoints, double[][] centroids, int[] parseStats)
+        long[] wins;
+        long[] losses;
+        public UIGeneratorClass(Dictionary<int, List<double[]>> allPoints, double[][] centroids, int[] parseStats, long[] wins, long[] losses)
         {
+            this.wins = wins;
+            this.losses = losses;
+
+
             stats = parseStats;
             centroidsEn = centroids;
             colours = new Dictionary<int, string>();
@@ -83,6 +89,8 @@ namespace ECO
             string temp = "\n \n var ctx = document.getElementById(\"dd\"); var doughnutChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [" + tempCount + " ], backgroundColor: [" + tempColours + "], label: 'Cluster Distrubution' }], labels: [" + tempClusterName + "]}, " +
                 "options: { responsive: true, legend: { position: 'right', }, title: { display: false, text: 'The distrubution of classes' }, animation: { animateScale: true, animateRotate: true } } });";
 
+
+
             return temp;
         }
 
@@ -95,7 +103,11 @@ namespace ECO
             int i = 1;
 
             foreach(var ping in Enum.GetNames(typeof(PlayerData.STAT))){
-                tempLables += "\"" + ping.ToString() + "\",";
+                tempLables += "\" CT " + ping.ToString() + "\",";
+            }
+            foreach (var ping in Enum.GetNames(typeof(PlayerData.STAT)))
+            {
+                tempLables += "\" T " + ping.ToString() + "\",";
             }
 
             foreach (var c in centroidsEn) {
@@ -129,6 +141,17 @@ namespace ECO
             for(int x = 0; x < centroidsEn.Length; x++)
             {
                 temp += "<h6> Cluster " + (x + 1) + ":</h6>" + "<canvas class=\"my-4 chartjs-render-monitor\" id=\"bar"+ (x+1) + "\" width=\"3106\" height=\"1311\" style=\"display: block; height: 874px; width: 2071px; \"></canvas>";
+
+                long percent = (long)(((double)wins[x] / ((double)wins[x] + (double)losses[x]))*100);
+                temp += "<h6> Winrate: " + percent + "%:</h6>";
+                if (wins[x] > losses[x])
+                {
+                    temp += "<div class=\"progress\" style=\"margin-top:2%; margin-bottom:5%\"><div class=\"progress-bar bg-success\" role=\"progressbar\" style=\"width: "+ percent + "%; height: 100%\" aria-valuenow=\"" + wins[x] + "\" aria-valuemin=\"0\" aria-valuemax=\"" + (wins[x] + losses[x]) + "\"></div></div>";
+                }
+                else
+                {
+                    temp += "<div class=\"progress\" style=\"margin-top:2%; margin-bottom:5%\"><div class=\"progress-bar bg-danger\" role=\"progressbar\" style=\"width: " + percent + "%; height: 100%\" aria-valuenow=\"" + wins[x] + "\" aria-valuemin=\"0\" aria-valuemax=\""+ (wins[x] + losses[x]) +"\"></div></div>";
+                }
             }
             return temp;
         }
