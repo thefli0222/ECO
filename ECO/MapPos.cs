@@ -251,7 +251,6 @@ namespace ECO
 
         private int overpassPosition(float x, float y, float z)
         {
-            return -1;
             //A Site
             if (x > -800 && y > -2630 && x < -130 && y < -1280)
             {
@@ -288,7 +287,6 @@ namespace ECO
 
         private int dust2Position(float x, float y, float z)
         {
-            return -1;
             //A Site
             if (x > -800 && y > -2630 && x < -130 && y < -1280)
             {
