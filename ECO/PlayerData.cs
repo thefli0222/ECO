@@ -14,7 +14,7 @@ namespace ECO
                             DURATION_FLASHED, FLASH_SUCCESSFUL, PISTOL_ROUND_KILL, POST_PLANT_KILL, ALONE_KILL, ALONE_SPENT,
                             EQUIPMENT_DIF_DEATH, EQUIPMENT_DIF_KILL, CROSSHAIR_MOVE_KILL_X, CROSSHAIR_MOVE_KILL_Y,
                             TIME_OF_KILL, TIME_OF_DEATH, ALONE_DEATH, AMOUNT_OF_MONEY, KILL_FROM_BEHIND, 
-                            KILLED_FROM_BEHIND
+                            KILLED_FROM_BEHIND, UNUSED_EQUIPMENT
         }
         //string[] playerNames;
         long steamID;

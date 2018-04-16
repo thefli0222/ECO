@@ -453,6 +453,7 @@ namespace ECO
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_DEATH, victim.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_DEATH, victim.Team, distanceFromClosestPlayer(parser, victim, parser.PlayingParticipants));
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_DEATH, victim.Team, equipmentValueDif);
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.UNUSED_EQUIPMENT, victim.Team, totalNadeValue(victim));
 
 
 
@@ -590,9 +591,40 @@ namespace ECO
             isWaitingForDownload = false;
         }
 
+        //Total nade value is important to know since a player that is good at using nades might be support player or some shit.
+        private long totalNadeValue(Player victim)
+        {
+            long totalValue = 0;
+            foreach (Equipment e in victim.Weapons)
+            {
+                switch (e.Weapon)
+                {
+                    case EquipmentElement.Decoy:
+                        totalValue += 50;
+                        continue;
+                    case EquipmentElement.Flash:
+                        totalValue += 200;
+                        continue;
+                    case EquipmentElement.HE:
+                        totalValue += 300;
+                        continue;
+                    case EquipmentElement.Incendiary:
+                        totalValue += 600;
+                        continue;
+                    case EquipmentElement.Molotov:
+                        totalValue += 400;
+                        continue;
+                    case EquipmentElement.Smoke:
+                        totalValue += 300;
+                        continue;
+                }
+            }
+            return totalValue;
+        }
+
         //checks the angle difference between killer and victim to see if they were killed from behind
-        
-            
+
+
         //TODO, start checking if they're behind when they first start fiering
         private void killFromBehind(Player killer, Player victim, DemoParser parser)
         {
