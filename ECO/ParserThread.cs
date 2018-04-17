@@ -307,7 +307,8 @@ namespace ECO
             var parser = new DemoParser(k);
 
             parser.ParseHeader();
-            parser.MatchStarted += (sender, e) => {
+            parser.MatchStarted += (sender, e) =>
+            {
                 hasMatchStarted = true;
                 tickRate = (int)Math.Ceiling(parser.TickRate);
             };
@@ -343,7 +344,8 @@ namespace ECO
                 }
             };
 
-            parser.RoundEnd += (sender, e) => {
+            parser.RoundEnd += (sender, e) =>
+            {
                 if (!hasMatchStarted)
                     return;
                 timeOfKill.Clear();
@@ -371,7 +373,8 @@ namespace ECO
                 //Console.WriteLine("New round");
             };
 
-            parser.WinPanelMatch += (sender, e) => {
+            parser.WinPanelMatch += (sender, e) =>
+            {
                 long[] results = new long[2];
                 results[1] = parser.TScore;
                 results[0] = parser.CTScore;
@@ -783,26 +786,60 @@ namespace ECO
             if (playersDead == 1)
             {
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL, killer.Team, 1);
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
                 //if the a T has anything less than ak and full kev we classify this as a forcebuy
-                if ((int)killer.Team == 2 && killer.CurrentEquipmentValue < 3700)
+                //Console.WriteLine("Money: " + killer.CurrentEquipmentValue);
+                if (((int)killer.Team == 2) && (killer.CurrentEquipmentValue < 3700))
                 {
-                    if (killer.CurrentEquipmentValue <= 700)
+                    //Printar men funkar ändå inte??????
+                    //Console.WriteLine("FORCE OR ECO");
+                    if (killer.CurrentEquipmentValue < 700)
+                    {
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+                    }
                     else
+                    {
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                    }
                 }
 
                 //if the CTs has anything less than vest + m4?????? we classify this as a forcebuy 650 +3100
-                if ((int)killer.Team == 1 && killer.CurrentEquipmentValue < 3750)
+                if ((int)killer.Team == 1 && killer.CurrentEquipmentValue < 3650)
                 {
                     if (killer.CurrentEquipmentValue <= 700)
+                    {
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+                    }
                     else
+                    {
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                    }
                 }
-
+                return;
             }
 
+            //the first CT kill a T get will always be counted as an entry frag
+            //nästan samma som ovan
+            if (ctsDead == 1)
+            {
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
+                //if the a T has anything less than ak and full kev we classify this as a forcebuy
+                if ((int)killer.Team == 2 && killer.CurrentEquipmentValue < 3700)
+                {
+                    if (killer.CurrentEquipmentValue < 700)
+                    {
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+                    }
+                    else
+                    {
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                    }
+                }
+            }
         }
 
         public void SMGKill(Player killer, DemoParser parser)
