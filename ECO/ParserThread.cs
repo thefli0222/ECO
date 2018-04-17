@@ -18,17 +18,20 @@ namespace ECO
 
         //used to store the current position of a player
         private Dictionary<long, (float, float)> position;
-        private List<String> parsedFiles;
-        private List<String> parsedGameData;
+        private double tempPos;
+
         //store the viewDirection (X,Y) of each player
         private Dictionary<long, (float, float)> viewDirection;
 
         //stores the tick of the last kill
         //currently not used TODO
-        private int lastKill;
+        private int lastKillTick;
 
-        private double tempPos;
         private int playersDead;
+        private int tsDead;
+        private int ctsDead;
+
+        int tickRate;
         private float roundStartTime;
         private MapPos mapPos = new MapPos();
         Boolean isDownloading;
@@ -37,9 +40,11 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
+        private List<String> parsedFiles;
+        private List<String> parsedGameData;
+
         public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
         public const int stopValue = 3;
-        int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;
         int count;
@@ -312,6 +317,8 @@ namespace ECO
             {
                 roundStartTime = parser.CurrentTime;
                 playersDead = 0;
+                tsDead = 0;
+                ctsDead = 0;
                 bombPlanted = false;
                 if (parser.TScore + parser.CTScore == 0) //Because this will happen the first round the players will be on the opposite side when the game ends
                 {
@@ -435,11 +442,16 @@ namespace ECO
 
             parser.PlayerKilled += (sender, e) =>
             {
-                if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0)
+                if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0 || e.Victim == null || e.Victim.SteamID == 0)
                     return;
                 Player killer = e.Killer;
                 Player victim = e.Victim;
                 playersDead++;
+                if ((int)e.Victim.Team == 2)
+                    tsDead++;
+                else
+                    ctsDead++;
+
 
                 if (!playerData.ContainsKey(killer.SteamID))
                 {
@@ -485,10 +497,10 @@ namespace ECO
                     timeOfKill.Add(killer.SteamID, parser.CurrentTime);
 
                 //Killing methods
-                killFromBehind(killer, victim, parser); //TODO
+                killFromBehind(killer, victim, parser);
 
 
-                entryFrag(killer, parser);
+                firstKill(killer, parser);
                 sniperKill(killer, parser);
                 rifleKill(killer, parser);
                 SMGKill(killer, parser);
@@ -497,6 +509,9 @@ namespace ECO
                 postPlantKill(killer, parser, bombPlanted);
                 positionKill(killer, parser);
                 pistolRoundKill(killer, parser);
+
+                //do this after all kill methods
+                lastKillTick = parser.CurrentTick;
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
@@ -513,6 +528,8 @@ namespace ECO
             };
 
 
+            //does not track ThrownBy
+            //use FireNadeWithOwnerStarted, but that event doesn not exist???
             parser.FireNadeStarted += (sender, e) =>
             {
                 if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
@@ -761,11 +778,30 @@ namespace ECO
         //Terrorist = 2
         //CT = 1?
         //will be extended to allow more types of kills to be classed as entry frags
-        public void entryFrag(Player killer, DemoParser parser)
+        public void firstKill(Player killer, DemoParser parser)
         {
             if (playersDead == 1)
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
+            {
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL, killer.Team, 1);
+                //if the a T has anything less than ak and full kev we classify this as a forcebuy
+                if ((int)killer.Team == 2 && killer.CurrentEquipmentValue < 3700)
+                {
+                    if (killer.CurrentEquipmentValue <= 700)
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                    else
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                }
 
+                //if the CTs has anything less than vest + m4?????? we classify this as a forcebuy 650 +3100
+                if ((int)killer.Team == 1 && killer.CurrentEquipmentValue < 3750)
+                {
+                    if (killer.CurrentEquipmentValue <= 700)
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                    else
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                }
+
+            }
 
         }
 

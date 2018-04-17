@@ -7,14 +7,15 @@ namespace ECO
     public class PlayerData
     {
         public enum STAT { KILL, DEATH, FLASH_THROWN, SMOKE_THROWN, GRENADE_THROWN,
-                            MOLOTOV_THROWN, STEP, CROUCH, ENTRY_FRAG, SMG_FRAG, //molly and entry not working
+                            MOLOTOV_THROWN, STEP, CROUCH, FIRST_KILL, SMG_FRAG, //molly not working
                             RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE,
                             SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL, SITE_SPENT,
                             T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT, ENEMY_DURATION_FLASHED, TEAM_DURATION_FLASHED,
                             DURATION_FLASHED, FLASH_SUCCESSFUL, PISTOL_ROUND_KILL, POST_PLANT_KILL, ALONE_KILL, ALONE_SPENT,
                             EQUIPMENT_DIF_DEATH, EQUIPMENT_DIF_KILL, CROSSHAIR_MOVE_KILL_X, CROSSHAIR_MOVE_KILL_Y,
                             TIME_OF_KILL, TIME_OF_DEATH, ALONE_DEATH, AMOUNT_OF_MONEY, KILL_FROM_BEHIND, 
-                            KILLED_FROM_BEHIND, UNUSED_EQUIPMENT
+                            KILLED_FROM_BEHIND, UNUSED_EQUIPMENT, ENTRY_FRAG, ENTRY_FRAG_FORCE, TRADE_KILL_FORCE,
+                            FIRST_KILL_FORCE, FIRST_KILL_ECO
         }
         //string[] playerNames;
         long steamID;
