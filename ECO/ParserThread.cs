@@ -29,8 +29,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 8;
+        public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 10000000;
         int tickRate;
 
         int numberOfErrors, numberOfNotFoundFiles;

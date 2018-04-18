@@ -267,42 +267,74 @@ namespace ECO
         private double[] getXnY(double o, double p, double f, double g, double h)
         {
             double oldValue;
-            double newValue;
+            double newValue = 0;
             double stepLength = 1;
-            double oldX = 15;
-            double oldY = 15;
             double newX = 0;
             double newY = 0;
+            double oldXBase = 5;
+            double oldYBase = 5;
+            double oldX = 15;
+            double oldY = 15;
+            double bestValue = 99999;
+            double multiplier = 1;
+            double[] temp = { 0, 0 };
 
 
-            int x = 0;
-            while (stepLength > 0.001)
-            {
-                oldValue = functionOfXY(o, p, f, g, h, oldX, oldY);
-                newX = oldX - (derivateX(o, p, f, g, h, oldX, oldY) * stepLength);
-                newY = oldY - (derivateY(o, p, f, g, h, oldX, oldY) * stepLength);
-
-                oldX = newX;
-                oldY = newY;
-                x++;
-                if (x > 100000)
+            for (int b=0; b < 80; b++) {
+                stepLength = 5;
+                if (b%4 == 0) {
+                    oldX = -oldXBase * multiplier;
+                    oldY = -oldYBase * multiplier;
+                    multiplier *= 2;
+                } else if (b % 3 == 0)
                 {
-                    break;
-                }
-                if(oldValue == 0)
+                    oldX = -oldXBase * multiplier;
+                    oldY = oldYBase * multiplier;
+                } else if (b % 2 == 0)
                 {
-                    break;
+                    oldX = oldXBase * multiplier;
+                    oldY = -oldYBase * multiplier;
+                }
+                else
+                {
+                    oldX = oldXBase * multiplier;
+                    oldY = oldYBase * multiplier;
+                }
+                int x = 0;
+                while (stepLength > 0.001)
+                {
+                    oldValue = functionOfXY(o, p, f, g, h, oldX, oldY);
+                    newX = oldX - (derivateX(o, p, f, g, h, oldX, oldY) * stepLength);
+                    newY = oldY - (derivateY(o, p, f, g, h, oldX, oldY) * stepLength);
+
+                    
+                    if (x > 500000)
+                    {
+                        break;
+                    }
+                    if(oldValue == 0)
+                    {
+                        break;
+                    }
+
+                    oldX = newX;
+                    oldY = newY;
+                    x++;
+
+                    newValue = functionOfXY(o, p, f, g, h, oldX, oldY);
+
+                    if(newValue > oldValue)
+                    {
+                        stepLength = stepLength / 2;
+                    }
+                }
+                
+                if(newValue < bestValue) {
+                    temp = new double[]{ oldX, oldY };
+                    bestValue = newValue;
                 }
 
-                newValue = functionOfXY(o, p, f, g, h, oldX, oldY);
-
-                if(newValue > oldValue)
-                {
-                    stepLength = stepLength / 2;
-                }
             }
-
-            double[] temp = { oldX, oldY };
 
             Console.WriteLine("Value of f: " + functionOfXY(o, p, f, g, h, oldX, oldY));
 
@@ -311,7 +343,7 @@ namespace ECO
 
         private double functionOfXY(double o, double p, double f, double g, double h, double X, double Y)
         {
-            return Math.Sqrt(Math.Abs(Math.Pow(X+Y, 2) - Math.Pow(f, 2))) + Math.Sqrt(Math.Abs(Math.Pow((X - o)+Y, 2) - Math.Pow(g, 2))) + Math.Sqrt(Math.Abs(Math.Pow(X + (Y - p), 2) - Math.Pow(h, 2)));
+            return Math.Abs(Math.Pow(X+Y, 2) - Math.Pow(f, 2)) + Math.Abs(Math.Pow((X - o)+Y, 2) - Math.Pow(g, 2)) + Math.Abs(Math.Pow(X + (Y - p), 2) - Math.Pow(h, 2));
         }
 
         private double derivateX(double o, double p, double f, double g, double h, double X, double Y)
