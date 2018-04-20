@@ -27,7 +27,7 @@ namespace ECO
 
 
             int c = 0;
-            foreach (var value in System.IO.File.ReadAllText(@"..\ECO\Save Files\weights.txt").Split(" "))
+            foreach (var value in System.IO.File.ReadAllText(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\weights.txt").Split(" "))
             {
                 if (value != "")
                 {
@@ -65,7 +65,7 @@ namespace ECO
             {
                 weightsString += value + " ";
             }
-            System.IO.File.WriteAllText(@"..\ECO\Save Files\weights.txt", weightsString);
+            System.IO.File.WriteAllText(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\weights.txt", weightsString);
 
 
             Console.WriteLine(Directory.GetCurrentDirectory() + @"/demos/");
@@ -115,7 +115,7 @@ namespace ECO
             }*/
 
 
-            foreach (var row in System.IO.File.ReadAllLines(@"..\ECO\Save Files\matchresults.txt"))
+            foreach (var row in System.IO.File.ReadAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\matchresults.txt"))
             {
 
                 long[] ctPlayers = new long[5];
@@ -141,10 +141,10 @@ namespace ECO
                 }
             }
 
-            System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
+            System.IO.File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
 
             temp.GetMatchResults().ConvertToClassesFromKmeans(kMean);
-            System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
+            System.IO.File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
 
 
             long[] wins = new long[numberOfClusters];

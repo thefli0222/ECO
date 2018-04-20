@@ -40,13 +40,14 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 10000000;
+        public const int numberOfDownloadingThreads = 8; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 4600;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
         int count;
         int numberOfFiles;
+        int saveCounter;
         public MatchResults GetMatchResults()
         {
             return matchResults;
@@ -66,14 +67,15 @@ namespace ECO
             isDone = false;
             isWaitingForDownload = true;
             allFilesParsed = false;
+            saveCounter = 0;
 
             viewDirection = new Dictionary<long, (float, float)>();
 
             parsedFiles = new List<String>();
-            parsedFiles.AddRange(System.IO.File.ReadAllLines(@"..\ECO\Save Files\parsedlinks.txt"));
+            parsedFiles.AddRange(System.IO.File.ReadAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedlinks.txt"));
 
             parsedGameData = new List<String>();
-            parsedGameData.AddRange(System.IO.File.ReadAllLines(@"..\ECO\Save Files\parsedgames.txt"));
+            parsedGameData.AddRange(System.IO.File.ReadAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedgames.txt"));
 
             count = 0;
             numberOfFiles = 1;
@@ -102,7 +104,7 @@ namespace ECO
 
 
             bool fileIsGettingDowloaded = false;
-            string[] filePaths = System.IO.File.ReadAllLines(@"..\ECO\Demo links\gamelinks.txt");
+            string[] filePaths = System.IO.File.ReadAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Demo links\gamelinks.txt");
             numberOfFiles = filePaths.Length;
             MemoryStream beingUsed;
 
@@ -165,6 +167,7 @@ namespace ECO
                                         downloadStreamClasses[x].IsDownloading = false;
                                         downloadStreamClasses[x].IsReady = false;
                                         numberOfNotFoundFiles++;
+                                        count++;
                                     };
                                 });
                                 dowloadingStreamThreads[x].Start();
@@ -225,11 +228,11 @@ namespace ECO
                 {
                     if (downloadStreamClasses[x].IsReady == true)
                     {
-                        //try {
+                        try {
                         getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
-                        //} catch
+                        } catch
                         {
-                            //numberOfErrors++;
+                            numberOfErrors++;
                         }
                         parsedFiles.Add(downloadStreamClasses[x].GameLink);
                         downloadStreamClasses[x].IsReady = false;
@@ -276,10 +279,15 @@ namespace ECO
                     Console.WriteLine("Number of errors: " + numberOfErrors + "| Succses rate: " + (1 - (numberOfErrors / count)) * 100 + "%");
                 }
                 Console.WriteLine("Number of not found files: " + numberOfNotFoundFiles);
-                System.Threading.Thread.Sleep(1000);
+                Console.WriteLine("[--------------------------------------------------]");
+                for (int b=0; b < 50; b++) {
+                    Console.SetCursorPosition(b + 1, 8+6);
+                    Console.Write("=");
+                    System.Threading.Thread.Sleep(2000);
+                }
                 currentCount++;
 
-                File.WriteAllLines(@"..\ECO\Save Files\parsedlinks.txt", parsedFiles);
+                File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedlinks.txt", parsedFiles);
 
             }
         }
@@ -385,8 +393,11 @@ namespace ECO
                 {
                     parsedGameData.Add(playerData[player].saveGame());
                 }
-
-                File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
+                if (saveCounter > 100) {
+                    File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedgames.txt", parsedGameData);
+                    saveCounter = 0;
+                }
+                saveCounter++;
             };
 
             //Features to be checked after each tick
@@ -597,7 +608,7 @@ namespace ECO
 
             parser.PlayerHurt += (sender, e) =>
             {
-                if (!hasMatchStarted || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
+                if (!hasMatchStarted || e.Player == null || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
                     return;
                 if (!playerData.ContainsKey(e.Attacker.SteamID))
                 {

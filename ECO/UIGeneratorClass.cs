@@ -31,7 +31,7 @@ namespace ECO
 
         public void generateHTML()
         {
-            System.IO.File.WriteAllText(@"..\ECO\Output\html.html", html);
+            System.IO.File.WriteAllText(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Output\html.html", html);
         }
 
         private string ClusterGenerator()

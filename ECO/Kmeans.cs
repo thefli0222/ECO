@@ -228,9 +228,9 @@ namespace ECO
                     if (data[i][j] >= 0.0) Console.Write(" ");
                     Console.Write(data[i][j].ToString("F" + decimals) + " ");
                 }
-                Console.WriteLine("");
+                //Console.WriteLine("");
             }
-            if (newLine) Console.WriteLine("");
+            if (newLine) ; //Console.WriteLine("");
         }
 
         static void ShowVector(int[] vector, bool newLine)
@@ -308,7 +308,7 @@ namespace ECO
                     newY = oldY - (derivateY(o, p, f, g, h, oldX, oldY) * stepLength);
 
                     
-                    if (x > 500000)
+                    if (x > 20000)
                     {
                         break;
                     }
@@ -622,7 +622,7 @@ namespace ECO
                         if (data[i][j] >= 0.0) Console.Write(" ");
                         Console.Write(data[i][j].ToString("F" + decimals) + " ");
                     }
-                    Console.WriteLine("");
+                    //Console.WriteLine("");
                 }
                 Console.WriteLine("===================");
             } // k
