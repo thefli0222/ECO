@@ -7,6 +7,10 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Windows.Input;
+
+enum WeaponType {Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Unknown};
+
+
 namespace ECO
 {
     class ParserThread
@@ -23,6 +27,15 @@ namespace ECO
         //store the viewDirection (X,Y) of each player
         private Dictionary<long, (float, float)> viewDirection;
 
+        private Dictionary<long, int> FIRST_KILL_ECO_T = new Dictionary<long, int>();
+        private Dictionary<long, int> ENTRY_FRAG_ECO_T = new Dictionary<long, int>();
+        private Dictionary<long, int> FIRST_KILL_FORCE_T = new Dictionary<long, int>();
+        private Dictionary<long, int> ENTRY_FRAG_FORCE_T = new Dictionary<long, int>();
+        private Dictionary<long, int> FIRST_KILL_ECO_CT = new Dictionary<long, int>();
+        private Dictionary<long, int> ENTRY_FRAG_ECO_CT = new Dictionary<long, int>();
+        private Dictionary<long, int> FIRST_KILL_FORCE_CT = new Dictionary<long, int>();
+        private Dictionary<long, int> ENTRY_FRAG_FORCE_CT = new Dictionary<long, int>();
+
         //stores the tick of the last kill
         //currently not used TODO
         private int lastKillTick;
@@ -30,6 +43,8 @@ namespace ECO
         private int playersDead;
         private int tsDead;
         private int ctsDead;
+
+
 
         int tickRate;
         private float roundStartTime;
@@ -41,7 +56,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 10000000;
+        public const int stopValue = 12;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -307,6 +322,25 @@ namespace ECO
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) =>
             {
+                FIRST_KILL_ECO_T.Clear();
+                ENTRY_FRAG_ECO_T.Clear();
+                FIRST_KILL_FORCE_T.Clear();
+                ENTRY_FRAG_FORCE_T.Clear();
+                FIRST_KILL_ECO_CT.Clear();
+                ENTRY_FRAG_ECO_CT.Clear();
+                FIRST_KILL_FORCE_CT.Clear();
+                ENTRY_FRAG_FORCE_CT.Clear();
+                foreach (Player P in parser.PlayingParticipants)
+                {
+                    FIRST_KILL_ECO_T.Add(P.SteamID, 0);
+                    ENTRY_FRAG_ECO_T.Add(P.SteamID, 0);
+                    FIRST_KILL_FORCE_T.Add(P.SteamID, 0);
+                    ENTRY_FRAG_FORCE_T.Add(P.SteamID, 0);
+                    FIRST_KILL_ECO_CT.Add(P.SteamID, 0);
+                    ENTRY_FRAG_ECO_CT.Add(P.SteamID, 0);
+                    FIRST_KILL_FORCE_CT.Add(P.SteamID, 0);
+                    ENTRY_FRAG_FORCE_CT.Add(P.SteamID, 0);
+                }
                 hasMatchStarted = true;
                 tickRate = (int)Math.Ceiling(parser.TickRate);
             };
@@ -336,6 +370,14 @@ namespace ECO
                         if (!playerData.ContainsKey(p.SteamID))
                         {
                             playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                            FIRST_KILL_ECO_T.Add(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_T.Add(p.SteamID, 0);
+                            FIRST_KILL_FORCE_T.Add(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_T.Add(p.SteamID, 0);
+                            FIRST_KILL_ECO_CT.Add(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_CT.Add(p.SteamID, 0);
+                            FIRST_KILL_FORCE_CT.Add(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_CT.Add(p.SteamID, 0);
                         }
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.AMOUNT_OF_MONEY, p.Team, p.Money);
                     }
@@ -354,6 +396,14 @@ namespace ECO
                         if (!playerData.ContainsKey(p.SteamID))
                         {
                             playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                            FIRST_KILL_ECO_T.Add(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_T.Add(p.SteamID, 0);
+                            FIRST_KILL_FORCE_T.Add(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_T.Add(p.SteamID, 0);
+                            FIRST_KILL_ECO_CT.Add(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_CT.Add(p.SteamID, 0);
+                            FIRST_KILL_FORCE_CT.Add(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_CT.Add(p.SteamID, 0);
                         }
                         playerData[p.SteamID].addRound(parser.Map, p.Team, 1);
                         //this is to prevent people who die early in the round to get the same
@@ -371,12 +421,17 @@ namespace ECO
                 //Console.WriteLine("New round");
             };
 
+
             parser.WinPanelMatch += (sender, e) =>
             {
                 long[] results = new long[2];
                 results[1] = parser.TScore;
                 results[0] = parser.CTScore;
                 matchResults.AddMatchResult(ctPlayers, tPlayers, results);
+                foreach(Player p in parser.PlayingParticipants)
+                {
+                    //playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                }
                 foreach (long player in ctPlayers)
                 {
                     parsedGameData.Add(playerData[player].saveGame());
@@ -502,10 +557,7 @@ namespace ECO
 
 
                 firstKill(killer, parser);
-                sniperKill(killer, parser);
-                rifleKill(killer, parser);
-                SMGKill(killer, parser);
-                pistolKill(killer, parser);
+                handleKill(killer, parser);
                 tradeKill(killer, parser);
                 postPlantKill(killer, parser, bombPlanted);
                 positionKill(killer, parser);
@@ -793,8 +845,22 @@ namespace ECO
                     //Console.WriteLine("FORCE OR ECO");
                     if (killer.CurrentEquipmentValue < 700)
                     {
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+
+                        if (FIRST_KILL_ECO_T.ContainsKey(killer.SteamID))
+                            FIRST_KILL_ECO_T[killer.SteamID] = FIRST_KILL_ECO_T[killer.SteamID]++;
+                        else
+                            FIRST_KILL_ECO_T.Add(killer.SteamID, 1);
+
+                        if (ENTRY_FRAG_ECO_T.ContainsKey(killer.SteamID))
+                            ENTRY_FRAG_ECO_T[killer.SteamID] = FIRST_KILL_ECO_T[killer.SteamID]++;
+                        else
+                            ENTRY_FRAG_ECO_T.Add(killer.SteamID, 1);
+                            
+
+                        //this for some stupid reason doesnt work if placed here
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
                     }
                     else
                     {
@@ -840,92 +906,88 @@ namespace ECO
             }
         }
 
-        public void SMGKill(Player killer, DemoParser parser)
+        public void handleKill(Player killer, DemoParser parser)
         {
-            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 1)
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SMG_FRAG, killer.Team, 1);
+            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) != WeaponType.Unknown)
+            {
+                WeaponType w = getWeaponType(killer.ActiveWeapon.Weapon);
+
+                switch (w)
+                {
+                    case WeaponType.Rifle:
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.RIFLE_FRAG, killer.Team, 1);
+                        break;
+                    case WeaponType.Shotgun:
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SHOTGUN_FRAG, killer.Team, 1);
+                        break;
+                    case WeaponType.Sniper:
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SNIPER_FRAG, killer.Team, 1);
+                        break;
+                    case WeaponType.Pistol:
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
+                        break;
+                    case WeaponType.SMG:
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SMG_FRAG, killer.Team, 1);
+                        break;
+                    case WeaponType.MachineGun:
+                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.MACHINEGUN_FRAG, killer.Team, 1);
+                        break;
+                    default:
+                        return;
+                }
+            }   
         }
 
-        public void rifleKill(Player killer, DemoParser parser)
-        {
-            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 0)
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.RIFLE_FRAG, killer.Team, 1);
-        }
-
-        public void sniperKill(Player killer, DemoParser parser)
-        {
-            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 2)
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SNIPER_FRAG, killer.Team, 1);
-        }
-        public void pistolKill(Player killer, DemoParser parser)
-        {
-            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) == 3)
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.PISTOL_FRAG, killer.Team, 1);
-        }
         public void postPlantKill(Player killer, DemoParser parser, Boolean bombPlanted)
         {
             if (bombPlanted)
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.POST_PLANT_KILL, killer.Team, 1);
         }
-        public int getWeaponType(EquipmentElement e)
+        public WeaponType getWeaponType(EquipmentElement e)
         {
-            //0 is rifle, 1 is sniper, 2 is smgs, 3 pistols
             switch (e)
             {
                 case EquipmentElement.AK47:
-                    return 0;
                 case EquipmentElement.M4A1:
-                    return 0;
                 case EquipmentElement.M4A4:
-                    return 0;
                 case EquipmentElement.AUG:
-                    return 0;
+                case EquipmentElement.Gallil:
                 case EquipmentElement.SG556:
-                    return 0;
+                case EquipmentElement.Famas:
+                    return WeaponType.Rifle;
                 case EquipmentElement.UMP:
-                    return 1;
                 case EquipmentElement.MP7:
-                    return 1;
                 case EquipmentElement.MP9:
-                    return 1;
                 case EquipmentElement.Mac10:
-                    return 1;
                 case EquipmentElement.P90:
-                    return 1;
+                    return WeaponType.SMG;
                 case EquipmentElement.Nova:
-                    return 1;
                 case EquipmentElement.SawedOff:
-                    return 1;
                 case EquipmentElement.Swag7:
-                    return 1;
+                case EquipmentElement.XM1014:
+                    return WeaponType.Shotgun;
                 case EquipmentElement.AWP:
-                    return 2;
                 case EquipmentElement.Scout:
-                    return 2;
                 case EquipmentElement.G3SG1:
-                    return 2;
                 case EquipmentElement.Scar20:
-                    return 2;
+                    return WeaponType.Sniper;
                 case EquipmentElement.CZ:
-                    return 3;
                 case EquipmentElement.Deagle:
-                    return 3;
                 case EquipmentElement.Glock:
-                    return 3;
                 case EquipmentElement.FiveSeven:
-                    return 3;
                 case EquipmentElement.P250:
-                    return 3;
                 case EquipmentElement.DualBarettas:
-                    return 3;
                 case EquipmentElement.P2000:
-                    return 3;
                 case EquipmentElement.USP:
-                    return 3;
                 case EquipmentElement.Tec9:
-                    return 3;
+                case EquipmentElement.Revolver:
+                    return WeaponType.Pistol;
+                case EquipmentElement.Negev:
+                case EquipmentElement.M249:
+                    return WeaponType.MachineGun;
+                default:
+                    return WeaponType.Unknown;
             }
-            return -1;
         }
 
 
