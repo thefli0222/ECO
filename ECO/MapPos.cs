@@ -6,8 +6,119 @@ namespace ECO
 {
 
 
+
+    public class CSGOMap
+    {
+        public CSGOMap() {
+            areas = null;
+        }
+
+        Area[] areas;
+
+        public void setArea(Area[] a)
+        {
+            areas = a;
+        }
+    }
+
+    public struct Area
+    {
+        (int, int) x, y, z;
+
+        //default does not care about z-axis
+        public Area((int, int) x, (int, int) y)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = (int.MinValue, int.MaxValue);
+        }
+
+        public Area((int,int) x, (int, int) y, (int, int) z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
     class MapPos
     {
+        Area Mirage_A_Site = new Area(x:(-130, -800), y:(-130, -1280));
+        Area Mirage_B_Site1 = new Area(x:(-2700, -1520), y:(-270, 650));
+        Area Mirage_B_Site2 = new Area(x:(-2500, -1930), y:(630, 870));
+        Area Mirage_A_T_Entry = new Area(x:(-130, 600), y:(-2500, -1280));
+        Area Mirage_B_T_Entry = new Area(x:(-1920, -970), y:(-830, 650));
+        Area Mirage_A_CT_Entry = new Area(x:(-2390, -1520), y:(-730, -270));
+        Area Mirage_B_CT_Entry = new Area(x:(-2250, -800), y:(-2630, -1060));
+        Area Mirage_MID = new Area(x:(-1220, 530), y:(950, -50));
+
+        Area Cache_A_Site = new Area(x:(-450, 480), y:(1260, 2300));
+        Area Cache_B_Site1 = new Area(x:(-430, 230), y:(-1470, -230));
+        Area Cache_A_T_Entry = new Area(x:(110, 950), y:(800, 2300));
+        Area Cache_B_T_Entry = new Area(x:(260, 1200), y:(-230, -1500));
+        Area Cache_A_CT_Entry = new Area(x:(-1060, -350), y:(800, 1460));
+        Area Cache_B_CT_Entry = new Area(x:(-1100, -430), y:(-1080, -150));
+        Area Cache_MID = new Area(x:(-1100, -600), y:(-160, 820));
+
+        Area Inferno_A_Site = new Area(x:(1800, 2730), y:(-750, 740));
+        Area Inferno_B_Site1 = new Area(x:(-360, 850), y:(250, 2430));
+        Area Inferno_A_T_Entry = new Area(x:(960, 1800), y:(-750, 400));
+        Area Inferno_B_T_Entry = new Area(x:(-360, 1200), y:(800, 2430));
+        Area Inferno_A_CT_Entry = new Area(x:(1300, 2730), y:(740, 1960));
+        Area Inferno_B_CT_Entry = new Area(x:(850, 2330), y:(2500, 3520));
+        Area Inferno_MID1 = new Area(x: (-420, 160), y: (750, 900));
+        Area Inferno_MID2 = new Area(x: (0, 1600), y: (330, 750));
+
+        Area Nuke_A_Site = new Area(x:(340, 970), y:(-1000, -340), z:(-360, int.MaxValue));
+        Area Nuke_B_Site1 = new Area(x:(320, 950), y:(-1340, -270), z:(int.MinValue, -510));
+        Area Nuke_A_T_Entry = new Area(x:(-260, 860), y:(-1400, -1280), z:(-360, -190));
+        //wat
+        Area Nuke_B_T_Entry1 = new Area(x:(0, 260), y:(-650, -650));
+        Area Nuke_B_T_Entry2 = new Area(x:(370, 900), y: (-250, 340), z:(int.MinValue, -480));
+        Area Nuke_A_CT_Entry = new Area(x:(950, 1300), y:(-500, -300), z:(-100, int.MaxValue));
+        Area Nuke_B_CT_Entry1 = new Area(x:(0, 290), y:(-1700, -1280), z:(int.MinValue, -510));
+        Area Nuke_B_CT_Entry2 = new Area(x:(1000, 1430), y:(-390, 1700), z: (int.MinValue, -510));
+        Area Nuke_B_CT_Entry3 = new Area(x:(780, 1220), y:(-230, 700), z: (int.MinValue, -510));
+        Area Nuke_MID1 = new Area(x:(-160, 340), y:(-1910, -1460), z:(0,int.MaxValue));
+        Area Nuke_MID2 = new Area(x:(-200, 2000), y:(-2500, -1620), z:(0, int.MaxValue));
+
+
+        Area Cbble_A_Site = new Area(x:(-3000, -1980), y:(-1980, -800));
+        Area Cbble_B_Site1 = new Area(x:(-700, 770), y:(-1600, -270));
+        Area Cbble_A_T_Entry = new Area(x:(-3200, -1800), y:(-800, 740));
+        Area Cbble_B_T_Entry = new Area(x:(-1000, 770), y:(-270, 400));
+        Area Cbble_A_CT_Entry = new Area(x:(-1800, -1300), y:(-1700, -670));
+        Area Cbble_B_CT_Entry = new Area(x:(-1300, -700), y:(-1300, -670));
+        Area Cbble_MID = new Area(x:(-2800, -1000), y:(400, 2850));
+
+        Area Train_A_Site = new Area(x:(-210, 1000), y:(-300, 300));
+        Area Train_B_Site1 = new Area(x:(-490, 490), y:(-1630, -930));
+        Area Train_A_T_Entry1 = new Area(x:(-760, -320), y:(-450, -220));
+        Area Train_A_T_Entry2 = new Area(x:(-860, -400), y:(380, 750));
+        Area Train_A_T_Entry3 = new Area(x:(1150, 1450), y:(650, 1730));
+        Area Train_B_T_Entry = new Area(x:(-1160, 490), y:(-1770, -500));
+        Area Train_A_CT_Entry1 = new Area(x:(300, 1100), y:(-810, -280));
+        Area Train_A_CT_Entry2 = new Area(x:(1010, 1970), y:(-260, 0));
+        Area Train_B_CT_Entry = new Area(x:(490, 1540), y:(-1850, -790));
+        Area Train_MID = new Area(x:(-360, 2000), y:(300, 600));
+
+        Area Overpass_A_Site = new Area(x:(-3290, -1460), y:(380, 1040), z:(490, int.MaxValue));
+        Area Overpass_B_Site1 = new Area(x:(-1560, 140), y:(-300, 500));
+        Area Overpass_A_T_Entry = new Area(x:(-4060, -2130), y:(-350, 390));
+        Area Overpass_B_T_Entry = new Area(x:(-1560, 0), y:(-1530, -300));
+        Area Overpass_A_CT_Entry = new Area(x:(-2850, -1640), y:(740, 1940), z:(int.MinValue, 490));
+        Area Overpass_B_CT_Entry = new Area(x:(-2060, -1770), y:(-770, 780), z:(int.MinValue, 400));
+        Area Overpass_MID = new Area(x:(-3900, -2130), y:(-3000, -350));
+
+        Area Dust2_A_Site = new Area(x:(170, 1550), y:(2330, 3110));
+        Area Dust2_B_Site = new Area(x:(-2230, -1350), y:(1860, 3560));
+        Area Dust2_A_T_Entry1 = new Area(x:(500, 1860), y:(570, 1980));
+        Area Dust2_A_T_Entry2 = new Area(x:(-80, 520), y:(1310, 2330), z:(30, int.MaxValue));
+        Area Dust2_B_T_Entry = new Area(x:(-2280, -1580), y:(-1580, 970));
+        Area Dust2_A_CT_Entry = new Area(x:(-300, 1240), y:(1960, 2430), z:(int.MinValue, 30));
+        Area Dust2_B_CT_Entry = new Area(x:(-1330, -680), y:(2030, 2640));
+        Area Dust2_MID = new Area(x:(-600, 0), y:(-910, 2600));
+
+
         public Site getPos(string map, float x, float y, float z)
         {
             switch (map)
