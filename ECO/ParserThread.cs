@@ -496,9 +496,10 @@ namespace ECO
 
             };
 
+
             parser.PlayerKilled += (sender, e) =>
             {
-                if (!hasMatchStarted || e.Killer == null || e.Killer.SteamID == 0 || e.Victim == null || e.Victim.SteamID == 0)
+                if (!hasMatchStarted || e.Killer == null || isBot(e.Killer.SteamID) || e.Victim == null || isBot(e.Victim.SteamID))
                     return;
                 Player killer = e.Killer;
                 Player victim = e.Victim;
@@ -569,7 +570,7 @@ namespace ECO
 
             parser.SmokeNadeEnded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
+                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
@@ -585,7 +586,7 @@ namespace ECO
             //use FireNadeWithOwnerStarted, but that event doesn not exist???
             parser.FireNadeStarted += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
+                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
@@ -599,7 +600,7 @@ namespace ECO
 
             parser.FlashNadeExploded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
+                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
 
@@ -635,21 +636,20 @@ namespace ECO
 
             parser.ExplosiveNadeExploded += (sender, e) =>
             {
-                if (!hasMatchStarted || e.ThrownBy == null || e.ThrownBy.SteamID == 0)
+                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
                 if (!playerData.ContainsKey(thrower.SteamID))
                 {
                     playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
                 }
-
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_THROWN, thrower.Team, 1);
             };
 
 
             parser.PlayerHurt += (sender, e) =>
             {
-                if (!hasMatchStarted || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
+                if (!hasMatchStarted || e.Attacker == null || isBot(e.Attacker.SteamID) || isBot(e.Player.SteamID))
                     return;
                 if (!playerData.ContainsKey(e.Attacker.SteamID))
                 {
@@ -726,12 +726,7 @@ namespace ECO
             {
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL_FROM_BEHIND, killer.Team, 1);
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.KILLED_FROM_BEHIND, victim.Team, 1);
-
             }
-
-            //Console.WriteLine("x: " + killer.ViewDirectionX);
-            //Console.WriteLine("y: " + killer.ViewDirectionY);
-            //if(killer.ViewDirectionX)
         }
 
         private long distanceFromClosestPlayer(DemoParser parser, Player currentPlayer, IEnumerable<Player> playingParticipants)
@@ -1001,6 +996,13 @@ namespace ECO
                     playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL, killer.Team, 1);
                 }
             }
+        }
+
+        Boolean isBot(long SteamID)
+        {
+            if (SteamID == 0)
+            return true;
+            return false;
         }
 
     }
