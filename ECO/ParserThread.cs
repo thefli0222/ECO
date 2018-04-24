@@ -8,11 +8,13 @@ using System.Text;
 using System.Threading;
 using System.Windows.Input;
 
-enum WeaponType {Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Unknown};
 
 
 namespace ECO
 {
+    enum WeaponType { Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Unknown };
+    enum Site {A_Site, B_Site, A_T_Entry, B_T_Entry, A_CT_Entry, B_CT_Entry, Mid, Other };
+
     class ParserThread
     {
         private Dictionary<long, PlayerData> playerData;
@@ -56,7 +58,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 12;
+        public const int stopValue = 4;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -761,28 +763,22 @@ namespace ECO
         {
             switch (mapPos.getPos(parser.Map, p.Position.X, p.Position.Y, p.Position.Z))
             {
-                case 1:
+                case Site.A_Site:
+                case Site.B_Site:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_SPENT, p.Team, 1);
                     break;
-                case 2:
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_SPENT, p.Team, 1);
-                    break;
-                case 3:
+                case Site.A_T_Entry:
+                case Site.B_T_Entry:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_SPENT, p.Team, 1);
                     break;
-                case 4:
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_SPENT, p.Team, 1);
-                    break;
-                case 5:
+                case Site.A_CT_Entry:
+                case Site.B_CT_Entry:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_SPENT, p.Team, 1);
                     break;
-                case 6:
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_SPENT, p.Team, 1);
-                    break;
-                case 7:
+                case Site.Mid:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.MID_SPENT, p.Team, 1);
                     break;
-                case -1:
+                case Site.Other:
                     return;
             }
         }
@@ -791,28 +787,22 @@ namespace ECO
         {
             switch (mapPos.getPos(parser.Map, p.Position.X, p.Position.Y, p.Position.Z))
             {
-                case 1:
+                case Site.A_Site:
+                case Site.B_Site:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, p.Team, 1);
                     break;
-                case 2:
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.SITE_KILL, p.Team, 1);
-                    break;
-                case 3:
+                case Site.A_T_Entry:
+                case Site.B_T_Entry:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_KILL, p.Team, 1);
                     break;
-                case 4:
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.T_ENTRY_KILL, p.Team, 1);
-                    break;
-                case 5:
+                case Site.A_CT_Entry:
+                case Site.B_CT_Entry:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_KILL, p.Team, 1);
                     break;
-                case 6:
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CT_ENTRY_KILL, p.Team, 1);
-                    break;
-                case 7:
+                case Site.Mid:
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.MID_KILL, p.Team, 1);
                     break;
-                case -1:
+                case Site.Other:
                     return;
             }
         }
