@@ -72,7 +72,7 @@ namespace ECO
         Area Nuke_B_Site1 = new Area(x:(320, 950), y:(-1340, -270), z:(int.MinValue, -510));
         Area Nuke_A_T_Entry = new Area(x:(-260, 860), y:(-1400, -1280), z:(-360, -190));
         //wat
-        Area Nuke_B_T_Entry1 = new Area(x:(0, 260), y:(-650, -650));
+        Area Nuke_B_T_Entry1 = new Area(x:(0, 260), y:(-650, 150));
         Area Nuke_B_T_Entry2 = new Area(x:(370, 900), y: (-250, 340), z:(int.MinValue, -480));
         Area Nuke_A_CT_Entry = new Area(x:(950, 1300), y:(-500, -300), z:(-100, int.MaxValue));
         Area Nuke_B_CT_Entry1 = new Area(x:(0, 290), y:(-1700, -1280), z:(int.MinValue, -510));

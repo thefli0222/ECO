@@ -57,8 +57,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 4;
+        public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 3;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -278,6 +278,7 @@ namespace ECO
 
                 Console.Clear();
                 int index = 1;
+
                 foreach (var downloadStream in downloadStreamClasses)
                 {
                     Console.WriteLine("Thread " + index++ + " is downloading files: " + downloadStream.IsDownloading);
@@ -319,35 +320,39 @@ namespace ECO
             fileName.CopyTo(k);
             k.Position = 0;
 
+            FIRST_KILL_ECO_T.Clear();
+            ENTRY_FRAG_ECO_T.Clear();
+            FIRST_KILL_FORCE_T.Clear();
+            ENTRY_FRAG_FORCE_T.Clear();
+            FIRST_KILL_ECO_CT.Clear();
+            ENTRY_FRAG_ECO_CT.Clear();
+            FIRST_KILL_FORCE_CT.Clear();
+            ENTRY_FRAG_FORCE_CT.Clear();
+
             var parser = new DemoParser(k);
 
             parser.ParseHeader();
             parser.MatchStarted += (sender, e) =>
             {
-                FIRST_KILL_ECO_T.Clear();
-                ENTRY_FRAG_ECO_T.Clear();
-                FIRST_KILL_FORCE_T.Clear();
-                ENTRY_FRAG_FORCE_T.Clear();
-                FIRST_KILL_ECO_CT.Clear();
-                ENTRY_FRAG_ECO_CT.Clear();
-                FIRST_KILL_FORCE_CT.Clear();
-                ENTRY_FRAG_FORCE_CT.Clear();
-                foreach (Player P in parser.PlayingParticipants)
+                if (hasMatchStarted)
                 {
-                    FIRST_KILL_ECO_T.Add(P.SteamID, 0);
-                    ENTRY_FRAG_ECO_T.Add(P.SteamID, 0);
-                    FIRST_KILL_FORCE_T.Add(P.SteamID, 0);
-                    ENTRY_FRAG_FORCE_T.Add(P.SteamID, 0);
-                    FIRST_KILL_ECO_CT.Add(P.SteamID, 0);
-                    ENTRY_FRAG_ECO_CT.Add(P.SteamID, 0);
-                    FIRST_KILL_FORCE_CT.Add(P.SteamID, 0);
-                    ENTRY_FRAG_FORCE_CT.Add(P.SteamID, 0);
+                    foreach (Player P in parser.PlayingParticipants)
+                    {
+                        FIRST_KILL_ECO_T.TryAdd(P.SteamID, 0);
+                        ENTRY_FRAG_ECO_T.TryAdd(P.SteamID, 0);
+                        FIRST_KILL_FORCE_T.TryAdd(P.SteamID, 0);
+                        ENTRY_FRAG_FORCE_T.TryAdd(P.SteamID, 0);
+                        FIRST_KILL_ECO_CT.TryAdd(P.SteamID, 0);
+                        ENTRY_FRAG_ECO_CT.TryAdd(P.SteamID, 0);
+                        FIRST_KILL_FORCE_CT.TryAdd(P.SteamID, 0);
+                        ENTRY_FRAG_FORCE_CT.TryAdd(P.SteamID, 0);
+                    }
                 }
                 hasMatchStarted = true;
                 tickRate = (int)Math.Ceiling(parser.TickRate);
             };
 
-
+            //this seem to occur once before the MatchStarted event is called, not sure why
             parser.RoundStart += (sender, e) =>
             {
                 roundStartTime = parser.CurrentTime;
@@ -372,14 +377,16 @@ namespace ECO
                         if (!playerData.ContainsKey(p.SteamID))
                         {
                             playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                            FIRST_KILL_ECO_T.Add(p.SteamID, 0);
-                            ENTRY_FRAG_ECO_T.Add(p.SteamID, 0);
-                            FIRST_KILL_FORCE_T.Add(p.SteamID, 0);
-                            ENTRY_FRAG_FORCE_T.Add(p.SteamID, 0);
-                            FIRST_KILL_ECO_CT.Add(p.SteamID, 0);
-                            ENTRY_FRAG_ECO_CT.Add(p.SteamID, 0);
-                            FIRST_KILL_FORCE_CT.Add(p.SteamID, 0);
-                            ENTRY_FRAG_FORCE_CT.Add(p.SteamID, 0);
+                            if (hasMatchStarted) {
+                                FIRST_KILL_ECO_T.Add(p.SteamID, 0);
+                                ENTRY_FRAG_ECO_T.Add(p.SteamID, 0);
+                                FIRST_KILL_FORCE_T.Add(p.SteamID, 0);
+                                ENTRY_FRAG_FORCE_T.Add(p.SteamID, 0);
+                                FIRST_KILL_ECO_CT.Add(p.SteamID, 0);
+                                ENTRY_FRAG_ECO_CT.Add(p.SteamID, 0);
+                                FIRST_KILL_FORCE_CT.Add(p.SteamID, 0);
+                                ENTRY_FRAG_FORCE_CT.Add(p.SteamID, 0);
+                            }
                         }
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.AMOUNT_OF_MONEY, p.Team, p.Money);
                     }
@@ -432,7 +439,10 @@ namespace ECO
                 matchResults.AddMatchResult(ctPlayers, tPlayers, results);
                 foreach(Player p in parser.PlayingParticipants)
                 {
-                    //playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
                 }
                 foreach (long player in ctPlayers)
                 {
@@ -835,10 +845,12 @@ namespace ECO
                         if (FIRST_KILL_ECO_T.ContainsKey(killer.SteamID))
                             FIRST_KILL_ECO_T[killer.SteamID] = FIRST_KILL_ECO_T[killer.SteamID]++;
                         else
+                        {
                             FIRST_KILL_ECO_T.Add(killer.SteamID, 1);
+                        }
 
                         if (ENTRY_FRAG_ECO_T.ContainsKey(killer.SteamID))
-                            ENTRY_FRAG_ECO_T[killer.SteamID] = FIRST_KILL_ECO_T[killer.SteamID]++;
+                            ENTRY_FRAG_ECO_T[killer.SteamID] = ENTRY_FRAG_ECO_T[killer.SteamID]++;
                         else
                             ENTRY_FRAG_ECO_T.Add(killer.SteamID, 1);
                             
@@ -849,8 +861,19 @@ namespace ECO
                     }
                     else
                     {
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                        if (FIRST_KILL_FORCE_T.ContainsKey(killer.SteamID))
+                            FIRST_KILL_FORCE_T[killer.SteamID] = FIRST_KILL_FORCE_T[killer.SteamID]++;
+                        else
+                        {
+                            FIRST_KILL_FORCE_T.Add(killer.SteamID, 1);
+                        }
+
+                        if (ENTRY_FRAG_FORCE_T.ContainsKey(killer.SteamID))
+                            ENTRY_FRAG_FORCE_T[killer.SteamID] = ENTRY_FRAG_FORCE_T[killer.SteamID]++;
+                        else
+                            ENTRY_FRAG_FORCE_T.Add(killer.SteamID, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
                     }
                 }
 
