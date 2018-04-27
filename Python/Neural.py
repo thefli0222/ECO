@@ -1,13 +1,16 @@
 from tensorflow.python.keras.layers import Activation, Dense, Dropout #import för layer egenskaper
 from tensorflow.python.keras.models import Sequential #skapar ett objekt för att bygga det neurala nätverket på
 from tensorflow.python.keras.optimizers import SGD #SGD=stochastic gradient descent, mer effektiv än vanlig gradient descent, se https://www.tensorflow.org/api_docs/python/tf/keras/optimizers för samtliga optimizers
+
+import matplotlib.pyplot as plt #Plots
 import numpy as np #För linjär algebra
 
 path_to_data = "4004lines.txt"
 path_to_validation_data = "validationData.txt"
 
-classification = True #klassificering eller regression
-hidden_layers = 4  #antal hidden layers
+#Fler hyperparametrar kommer samlas här för flexibilitet
+classification = True #Klassificering eller regression
+hidden_layers = 5  #Antal hidden layers
 
 with open(path_to_data) as f: #Antalet klasser utläses i första raden på inputfilen, se 404lines.txt för exempel.
     number_of_classes = int(f.readline()) 
@@ -28,12 +31,14 @@ np.random.shuffle(data) #randomiza datan för att slumpa training/testing/valida
 
 features = data[:, :-2]
 labels = data[:, (-2,-1)]
+
 validation_features = validation_data[:, :-2]
 validation_labels = validation_data[:, (-2,-1)]
 
 matches = len(features)
 
 new_features = np.zeros((matches, 2*number_of_classes)) #skapar nya features med binära inputs för existens av klass.
+
 for i in range(0, matches):
 	for j in range(0, 10):
 		if(j < 5):
@@ -43,6 +48,7 @@ for i in range(0, matches):
 
 validation_matches = len(validation_features)
 validation_data = np.zeros((validation_matches, 2*number_of_classes)) #skapar nya features med binära inputs för existens av klass.
+
 for i in range(0, validation_matches):
 	for j in range(0, 10):
 		if(j < 5):
@@ -112,23 +118,34 @@ if(hidden_layers > 1):
 
 	for i in range(1,hidden_layers):
 		neural_network.add(Dense(number_of_classes+1))
-		neural_network.add(Dropout(0.2))
+		neural_network.add(Dropout(0.05))
 		neural_network.add(Activation("relu"))
 
 neural_network.add(Dense(2)) #output layer för binär klassificering/regression
 neural_network.add(Activation(output_activation))
 
-optimizer_function = SGD(lr = 0.01, momentum = 0.01, decay = 0, nesterov = True) #Som sagt optimizern, se import ovan för mer information
+optimizer_function = SGD(lr = 0.1, momentum = 0.02, decay = 0, nesterov = True) #Som sagt optimizern, se import ovan för mer information
 
 neural_network.compile(loss = loss_function, optimizer = optimizer_function, metrics = ["accuracy"]) #kompilerar modellen och lägger till 'accuracy' i printouten i nästa steg.
 
-neural_network.fit(training_data, training_labels, epochs = 600, batch_size = 4, verbose = 2) #tränar nätverket, 300 iterationer, ändra verbose till 0 för att inte printa alls, 1 för cool progress bar!
+training = neural_network.fit(training_data, training_labels, validation_data = (validation_data, validation_labels), epochs = 50, batch_size = 32, verbose = 2) #tränar nätverket, 300 iterationer, ändra verbose till 0 för att inte printa alls, 1 för cool progress bar!
 (testing_loss, testing_accuracy) = neural_network.evaluate(testing_data, testing_labels, batch_size = 16, verbose = 2) #testar nätverket & printar progressen
 print("\n Loss function on test data = {:.4f}, Accuracy on test data = {:.4f}%".format(testing_loss, testing_accuracy * 100)) #printar ut cost/accuracyn på testvektorerna
-(validation_loss, validation_accuracy) = neural_network.evaluate(validation_data, validation_labels, batch_size = 16, verbose = 2)
-print("\n Loss function on validation data = {:.4f}, Accuracy on validation data = {:.4f}%".format(validation_loss, validation_accuracy * 100)) #printar ut cost/accuracyn på testvektorerna
-neural_network.summary() #printar ut nätverkets noder och kanter
 
+neural_network.summary() #printar ut nätverkets noder och kanter
+print(training.history.keys())
+
+plt.plot(training.history["acc"])
+plt.plot(training.history["val_acc"])
+plt.plot(training.history["loss"])
+plt.plot(training.history["val_loss"])
+
+plt.title("Accuracy and Losses for training and validation data over epochs.")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy and Loss")
+plt.legend(["Training accuracy", "Validation accuracy", "Training loss", "Validation loss"], loc="lower right")
+
+plt.show()
 
 #prediction = neural_network.predict(testing_data) #printar prediction vs result, varning kluddrigt...
 #for i in range(0,len(testing_data)):
