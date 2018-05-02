@@ -12,8 +12,8 @@ using System.Windows.Input;
 
 namespace ECO
 {
-    enum WeaponType { Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Unknown };
-    enum Site {A_Site, B_Site, A_T_Entry, B_T_Entry, A_CT_Entry, B_CT_Entry, Mid, Other };
+    public enum WeaponType { Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Unknown };
+    public enum Site { A_Site, B_Site, A_T_Entry, B_T_Entry, A_CT_Entry, B_CT_Entry, Mid, Other };
 
     class ParserThread
     {
@@ -129,10 +129,7 @@ namespace ECO
                 string[] tempStringArray = game.Split("|");
                 long steamID = long.Parse(tempStringArray[tempStringArray.Length - 1]);
                 string map = tempStringArray[tempStringArray.Length - 2];
-                if (!playerData.ContainsKey(steamID))
-                {
-                    playerData.Add(steamID, new PlayerData(steamID));
-                }
+                isIDTracked(steamID);
 
                 for (int x = 2; x < tempStringArray.Length - 2; x++)
                 {
@@ -374,19 +371,17 @@ namespace ECO
                         {
                             tPlayers[t++] = p.SteamID;
                         }
-                        if (!playerData.ContainsKey(p.SteamID))
+                        isIDTracked(p.SteamID);
+                        if (hasMatchStarted)
                         {
-                            playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                            if (hasMatchStarted) {
-                                FIRST_KILL_ECO_T.Add(p.SteamID, 0);
-                                ENTRY_FRAG_ECO_T.Add(p.SteamID, 0);
-                                FIRST_KILL_FORCE_T.Add(p.SteamID, 0);
-                                ENTRY_FRAG_FORCE_T.Add(p.SteamID, 0);
-                                FIRST_KILL_ECO_CT.Add(p.SteamID, 0);
-                                ENTRY_FRAG_ECO_CT.Add(p.SteamID, 0);
-                                FIRST_KILL_FORCE_CT.Add(p.SteamID, 0);
-                                ENTRY_FRAG_FORCE_CT.Add(p.SteamID, 0);
-                            }
+                            FIRST_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_T.TryAdd(p.SteamID, 0);
+                            FIRST_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_T.TryAdd(p.SteamID, 0);
+                            FIRST_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
+                            FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
                         }
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.AMOUNT_OF_MONEY, p.Team, p.Money);
                     }
@@ -405,14 +400,14 @@ namespace ECO
                         if (!playerData.ContainsKey(p.SteamID))
                         {
                             playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                            FIRST_KILL_ECO_T.Add(p.SteamID, 0);
-                            ENTRY_FRAG_ECO_T.Add(p.SteamID, 0);
-                            FIRST_KILL_FORCE_T.Add(p.SteamID, 0);
-                            ENTRY_FRAG_FORCE_T.Add(p.SteamID, 0);
-                            FIRST_KILL_ECO_CT.Add(p.SteamID, 0);
-                            ENTRY_FRAG_ECO_CT.Add(p.SteamID, 0);
-                            FIRST_KILL_FORCE_CT.Add(p.SteamID, 0);
-                            ENTRY_FRAG_FORCE_CT.Add(p.SteamID, 0);
+                            FIRST_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_T.TryAdd(p.SteamID, 0);
+                            FIRST_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_T.TryAdd(p.SteamID, 0);
+                            FIRST_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
+                            FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
+                            ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
                         }
                         playerData[p.SteamID].addRound(parser.Map, p.Team, 1);
                         //this is to prevent people who die early in the round to get the same
@@ -437,7 +432,7 @@ namespace ECO
                 results[1] = parser.TScore;
                 results[0] = parser.CTScore;
                 matchResults.AddMatchResult(ctPlayers, tPlayers, results);
-                foreach(Player p in parser.PlayingParticipants)
+                foreach (Player p in parser.PlayingParticipants)
                 {
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
                     playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
@@ -485,10 +480,7 @@ namespace ECO
                     {
                         if (p.SteamID != 0)
                         {
-                            if (!playerData.ContainsKey(p.SteamID))
-                            {
-                                playerData.Add(p.SteamID, new PlayerData(p.SteamID));
-                            }
+                            isIDTracked(p.SteamID);
                             if (position.ContainsKey(p.SteamID))
                             {
                                 tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1, 2.0)) + Math.Pow((position[key: p.SteamID].Item2), 2.0), 0.5);
@@ -521,15 +513,8 @@ namespace ECO
                 else
                     ctsDead++;
 
-
-                if (!playerData.ContainsKey(killer.SteamID))
-                {
-                    playerData.Add(killer.SteamID, new PlayerData(killer.SteamID));
-                }
-                if (!playerData.ContainsKey(victim.SteamID))
-                {
-                    playerData.Add(victim.SteamID, new PlayerData(victim.SteamID));
-                }
+                isIDTracked(killer.SteamID);
+                isIDTracked(victim.SteamID);
 
 
                 //calculate how much killer moved his crosshair 1/8th of a second before the kill
@@ -585,10 +570,7 @@ namespace ECO
                 if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
-                if (!playerData.ContainsKey(thrower.SteamID))
-                {
-                    playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
-                }
+                isIDTracked(thrower.SteamID);
 
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.SMOKE_THROWN, thrower.Team, 1);
             };
@@ -601,11 +583,7 @@ namespace ECO
                 if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
-                if (!playerData.ContainsKey(thrower.SteamID))
-                {
-                    playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
-                }
-
+                isIDTracked(thrower.SteamID);
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.MOLOTOV_THROWN, thrower.Team, 1);
             };
 
@@ -616,10 +594,7 @@ namespace ECO
                     return;
                 Player thrower = e.ThrownBy;
 
-                if (!playerData.ContainsKey(thrower.SteamID))
-                {
-                    playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
-                }
+                isIDTracked(thrower.SteamID);
 
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_THROWN, thrower.Team, 1);
 
@@ -628,8 +603,7 @@ namespace ECO
                 {
                     if (p.FlashDuration > 0.3)
                     {
-                        if (!playerData.ContainsKey(p.SteamID))
-                            playerData.Add(p.SteamID, new PlayerData(p.SteamID));
+                        isIDTracked(p.SteamID);
 
                         if (thrower.Team == p.Team)
                             playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.TEAM_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
@@ -651,10 +625,7 @@ namespace ECO
                 if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                     return;
                 Player thrower = e.ThrownBy;
-                if (!playerData.ContainsKey(thrower.SteamID))
-                {
-                    playerData.Add(e.ThrownBy.SteamID, new PlayerData(thrower.SteamID));
-                }
+                isIDTracked(thrower.SteamID);
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_THROWN, thrower.Team, 1);
             };
 
@@ -663,15 +634,13 @@ namespace ECO
             {
                 if (!hasMatchStarted || e.Attacker == null || isBot(e.Attacker.SteamID) || isBot(e.Player.SteamID))
                     return;
-                if (!playerData.ContainsKey(e.Attacker.SteamID))
-                {
-                    playerData.Add(e.Attacker.SteamID, new PlayerData(e.Attacker.SteamID));
-                }
+                isIDTracked(e.Attacker.SteamID);
                 if (e.Weapon.Weapon.Equals(EquipmentElement.HE))
                 {
                     playerData[e.Attacker.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_DAMAGE, e.Attacker.Team, e.HealthDamage);
                 }
             };
+
             parser.BombPlanted += (sender, e) =>
             {
                 bombPlanted = true;
@@ -853,7 +822,7 @@ namespace ECO
                             ENTRY_FRAG_ECO_T[killer.SteamID] = ENTRY_FRAG_ECO_T[killer.SteamID]++;
                         else
                             ENTRY_FRAG_ECO_T.Add(killer.SteamID, 1);
-                            
+
 
                         //this for some stupid reason doesnt work if placed here
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
@@ -943,7 +912,7 @@ namespace ECO
                     default:
                         return;
                 }
-            }   
+            }
         }
 
         public void postPlantKill(Player killer, DemoParser parser, Boolean bombPlanted)
@@ -1011,12 +980,19 @@ namespace ECO
             }
         }
 
-        Boolean isBot(long SteamID)
+        public Boolean isBot(long SteamID)
         {
             if (SteamID == 0)
-            return true;
+                return true;
             return false;
         }
 
+
+
+        public void isIDTracked(long SteamID)
+        {
+            if (!playerData.ContainsKey(SteamID))
+                playerData.Add(SteamID, new PlayerData(SteamID));
+        }
     }
 }
