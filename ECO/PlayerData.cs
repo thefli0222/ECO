@@ -135,6 +135,9 @@ namespace ECO
                     case "de_overpass":
                         dataMap.Add(map, new MapOverpass());
                         break;
+                    case "de_dust2":
+                        dataMap.Add(map, new MapDust2());
+                        break;
                 }
                 dataMap[map].addData(team, (int)stat, number);
             }

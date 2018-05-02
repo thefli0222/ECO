@@ -26,6 +26,7 @@ namespace ECO
             areas.Insert(4, A_CT_Entry);
             areas.Insert(5, B_CT_Entry);
             areas.Insert(6, MID);
+
             toSite = new Dictionary<Area[], Site>() {
                 { A_Site, Site.A_Site},
                 { B_Site, Site.B_Site},

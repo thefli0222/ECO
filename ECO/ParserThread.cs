@@ -57,8 +57,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 3;
+        public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 4;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -335,14 +335,17 @@ namespace ECO
                 {
                     foreach (Player P in parser.PlayingParticipants)
                     {
-                        FIRST_KILL_ECO_T.TryAdd(P.SteamID, 0);
-                        ENTRY_FRAG_ECO_T.TryAdd(P.SteamID, 0);
-                        FIRST_KILL_FORCE_T.TryAdd(P.SteamID, 0);
-                        ENTRY_FRAG_FORCE_T.TryAdd(P.SteamID, 0);
-                        FIRST_KILL_ECO_CT.TryAdd(P.SteamID, 0);
-                        ENTRY_FRAG_ECO_CT.TryAdd(P.SteamID, 0);
-                        FIRST_KILL_FORCE_CT.TryAdd(P.SteamID, 0);
-                        ENTRY_FRAG_FORCE_CT.TryAdd(P.SteamID, 0);
+                        if (!isBot(P.SteamID))
+                        {
+                            FIRST_KILL_ECO_T.TryAdd(P.SteamID, 0);
+                            ENTRY_FRAG_ECO_T.TryAdd(P.SteamID, 0);
+                            FIRST_KILL_FORCE_T.TryAdd(P.SteamID, 0);
+                            ENTRY_FRAG_FORCE_T.TryAdd(P.SteamID, 0);
+                            FIRST_KILL_ECO_CT.TryAdd(P.SteamID, 0);
+                            ENTRY_FRAG_ECO_CT.TryAdd(P.SteamID, 0);
+                            FIRST_KILL_FORCE_CT.TryAdd(P.SteamID, 0);
+                            ENTRY_FRAG_FORCE_CT.TryAdd(P.SteamID, 0);
+                        }
                     }
                 }
                 hasMatchStarted = true;
@@ -372,7 +375,7 @@ namespace ECO
                             tPlayers[t++] = p.SteamID;
                         }
                         isIDTracked(p.SteamID);
-                        if (hasMatchStarted)
+                        if (hasMatchStarted && !isBot(p.SteamID))
                         {
                             FIRST_KILL_ECO_T.TryAdd(p.SteamID, 0);
                             ENTRY_FRAG_ECO_T.TryAdd(p.SteamID, 0);
@@ -395,7 +398,7 @@ namespace ECO
                 timeOfKill.Clear();
                 foreach (Player p in parser.PlayingParticipants)
                 {
-                    if (p.SteamID != 0)
+                    if (!isBot(p.SteamID))
                     {
                         if (!playerData.ContainsKey(p.SteamID))
                         {
@@ -434,94 +437,99 @@ namespace ECO
                 matchResults.AddMatchResult(ctPlayers, tPlayers, results);
                 foreach (Player p in parser.PlayingParticipants)
                 {
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
-                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                    if (!isBot(p.SteamID)){
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, DemoInfo.Team.Terrorist, ENTRY_FRAG_ECO_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, DemoInfo.Team.CounterTerrorist, ENTRY_FRAG_ECO_CT[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, DemoInfo.Team.Terrorist, FIRST_KILL_FORCE_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, DemoInfo.Team.CounterTerrorist, FIRST_KILL_FORCE_CT[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, DemoInfo.Team.Terrorist, ENTRY_FRAG_FORCE_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, DemoInfo.Team.CounterTerrorist, ENTRY_FRAG_FORCE_CT[p.SteamID]);
+                    }
+                    foreach (long player in ctPlayers)
+                    {
+                        parsedGameData.Add(playerData[player].saveGame());
+                    }
+                    foreach (long player in tPlayers)
+                    {
+                        parsedGameData.Add(playerData[player].saveGame());
+                    }
                 }
-                foreach (long player in ctPlayers)
-                {
-                    parsedGameData.Add(playerData[player].saveGame());
-                }
-                foreach (long player in tPlayers)
-                {
-                    parsedGameData.Add(playerData[player].saveGame());
-                }
+                    File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
+                };
 
-                File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
-            };
-
-            //Features to be checked after each tick
-            // * check if the movement stat is to be updated
-            parser.TickDone += (sender, e) =>
-            {
-                if (!hasMatchStarted)
-                    return;
+                //Features to be checked after each tick
+                // * check if the movement stat is to be updated
+                parser.TickDone += (sender, e) =>
+                {
+                    if (!hasMatchStarted)
+                        return;
 
                 //every 8th of a tick, store current view direction
                 if ((parser.CurrentTick) % (tickRate / 8) == 0)
-                {
-                    foreach (Player p in parser.PlayingParticipants)
                     {
-                        if (viewDirection.ContainsKey(p.SteamID))
+                        foreach (Player p in parser.PlayingParticipants)
                         {
-                            viewDirection[p.SteamID] = (p.ViewDirectionX, p.ViewDirectionY);
-                        }
-                        else
-                            viewDirection.Add(p.SteamID, (p.ViewDirectionX, p.ViewDirectionY));
-                        //Check if the players are crouching.
-                        if (p.IsDucking) playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CROUCH, p.Team, 1);
-                    }
-                }
-                //if 2 second has passed, calculate distance between old and new position
-                if ((parser.CurrentTick) % (tickRate * 2) == 0)
-                {
-                    foreach (Player p in parser.PlayingParticipants)
-                    {
-                        if (p.SteamID != 0)
-                        {
-                            isIDTracked(p.SteamID);
-                            if (position.ContainsKey(p.SteamID))
+                            if (viewDirection.ContainsKey(p.SteamID))
                             {
-                                tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1, 2.0)) + Math.Pow((position[key: p.SteamID].Item2), 2.0), 0.5);
-                                position[p.SteamID] = (p.Position.X, p.Position.Y);
-                                if (tempPos < 400)
-                                {
-                                    playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (long)tempPos);
-                                }
+                                viewDirection[p.SteamID] = (p.ViewDirectionX, p.ViewDirectionY);
                             }
                             else
-                                position.Add(p.SteamID, (p.Position.X, p.Position.Y));
-                            currentArea(parser, p);
-                            playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_SPENT, p.Team, distanceFromClosestPlayer(parser, p, parser.PlayingParticipants));
+                                viewDirection.Add(p.SteamID, (p.ViewDirectionX, p.ViewDirectionY));
+                        //Check if the players are crouching.
+                        if (p.IsDucking) playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.CROUCH, p.Team, 1);
                         }
                     }
-                }
+                //if 2 second has passed, calculate distance between old and new position
+                if ((parser.CurrentTick) % (tickRate * 2) == 0)
+                    {
+                        foreach (Player p in parser.PlayingParticipants)
+                        {
+                            if (p.SteamID != 0)
+                            {
+                                isIDTracked(p.SteamID);
+                                if (position.ContainsKey(p.SteamID))
+                                {
+                                    tempPos = Math.Pow((Math.Pow(position[key: p.SteamID].Item1, 2.0)) + Math.Pow((position[key: p.SteamID].Item2), 2.0), 0.5);
+                                    position[p.SteamID] = (p.Position.X, p.Position.Y);
+                                    if (tempPos < 400)
+                                    {
+                                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.STEP, p.Team, (long)tempPos);
+                                    }
+                                }
+                                else
+                                    position.Add(p.SteamID, (p.Position.X, p.Position.Y));
+                                currentArea(parser, p);
+                                playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_SPENT, p.Team, distanceFromClosestPlayer(parser, p, parser.PlayingParticipants));
+                            }
+                        }
+                    }
 
-            };
+                };
 
 
-            parser.PlayerKilled += (sender, e) =>
-            {
-                if (!hasMatchStarted || e.Killer == null || isBot(e.Killer.SteamID) || e.Victim == null || isBot(e.Victim.SteamID))
-                    return;
-                Player killer = e.Killer;
-                Player victim = e.Victim;
-                playersDead++;
-                if ((int)e.Victim.Team == 2)
-                    tsDead++;
-                else
-                    ctsDead++;
+                parser.PlayerKilled += (sender, e) =>
+                {
+                    if (!hasMatchStarted || e.Killer == null || isBot(e.Killer.SteamID) || e.Victim == null || isBot(e.Victim.SteamID))
+                        return;
+                    Player killer = e.Killer;
+                    Player victim = e.Victim;
+                    playersDead++;
+                    if ((int)e.Victim.Team == 2)
+                        tsDead++;
+                    else
+                        ctsDead++;
 
-                isIDTracked(killer.SteamID);
-                isIDTracked(victim.SteamID);
+                    isIDTracked(killer.SteamID);
+                    isIDTracked(victim.SteamID);
 
 
                 //calculate how much killer moved his crosshair 1/8th of a second before the kill
                 long crosshairMovementX = (long)Math.Abs(viewDirection[killer.SteamID].Item1 - killer.ViewDirectionX);
-                long crosshairMovementY = (long)Math.Abs(viewDirection[killer.SteamID].Item2 - killer.ViewDirectionY);
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_X, killer.Team, crosshairMovementX);
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_Y, killer.Team, crosshairMovementY);
+                    long crosshairMovementY = (long)Math.Abs(viewDirection[killer.SteamID].Item2 - killer.ViewDirectionY);
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_X, killer.Team, crosshairMovementX);
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_Y, killer.Team, crosshairMovementY);
 
 
                 //difference in equipment value between victim and killer
@@ -529,139 +537,139 @@ namespace ECO
 
                 //add data to killer
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_KILL, killer.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_KILL, killer.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_KILL, killer.Team, distanceFromClosestPlayer(parser, killer, parser.PlayingParticipants));
-                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_KILL, killer.Team, equipmentValueDif);
+                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_KILL, killer.Team, equipmentValueDif);
 
                 //add data to victim(killed)
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, victim.Team, 1);
-                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_DEATH, victim.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
+                    playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_DEATH, victim.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_DEATH, victim.Team, distanceFromClosestPlayer(parser, victim, parser.PlayingParticipants));
-                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_DEATH, victim.Team, equipmentValueDif);
-                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.UNUSED_EQUIPMENT, victim.Team, totalNadeValue(victim));
+                    playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_DEATH, victim.Team, equipmentValueDif);
+                    playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.UNUSED_EQUIPMENT, victim.Team, totalNadeValue(victim));
 
 
 
                 //Store the time(in seconds) when a player last got a kill
                 if (timeOfKill.ContainsKey(killer.SteamID))
-                {
-                    timeOfKill[killer.SteamID] = parser.CurrentTime;
-                }
-                else
-                    timeOfKill.Add(killer.SteamID, parser.CurrentTime);
+                    {
+                        timeOfKill[killer.SteamID] = parser.CurrentTime;
+                    }
+                    else
+                        timeOfKill.Add(killer.SteamID, parser.CurrentTime);
 
                 //Killing methods
                 killFromBehind(killer, victim, parser);
 
 
-                firstKill(killer, parser);
-                handleKill(killer, parser);
-                tradeKill(killer, parser);
-                postPlantKill(killer, parser, bombPlanted);
-                positionKill(killer, parser);
-                pistolRoundKill(killer, parser);
+                    firstKill(killer, parser);
+                    handleKill(killer, parser);
+                    tradeKill(killer, parser);
+                    postPlantKill(killer, parser, bombPlanted);
+                    positionKill(killer, parser);
+                    pistolRoundKill(killer, parser);
 
                 //do this after all kill methods
                 lastKillTick = parser.CurrentTick;
-            };
+                };
 
-            parser.SmokeNadeEnded += (sender, e) =>
-            {
-                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
-                    return;
-                Player thrower = e.ThrownBy;
-                isIDTracked(thrower.SteamID);
+                parser.SmokeNadeEnded += (sender, e) =>
+                {
+                    if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
+                        return;
+                    Player thrower = e.ThrownBy;
+                    isIDTracked(thrower.SteamID);
 
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.SMOKE_THROWN, thrower.Team, 1);
-            };
-
-
-            //does not track ThrownBy
-            //use FireNadeWithOwnerStarted, but that event doesn not exist???
-            parser.FireNadeStarted += (sender, e) =>
-            {
-                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
-                    return;
-                Player thrower = e.ThrownBy;
-                isIDTracked(thrower.SteamID);
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.MOLOTOV_THROWN, thrower.Team, 1);
-            };
+                    playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.SMOKE_THROWN, thrower.Team, 1);
+                };
 
 
-            parser.FlashNadeExploded += (sender, e) =>
-            {
-                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
-                    return;
-                Player thrower = e.ThrownBy;
+                //does not track ThrownBy
+                //use FireNadeWithOwnerStarted, but that event doesn not exist???
+                parser.FireNadeStarted += (sender, e) =>
+                {
+                    if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
+                        return;
+                    Player thrower = e.ThrownBy;
+                    isIDTracked(thrower.SteamID);
+                    playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.MOLOTOV_THROWN, thrower.Team, 1);
+                };
 
-                isIDTracked(thrower.SteamID);
 
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_THROWN, thrower.Team, 1);
+                parser.FlashNadeExploded += (sender, e) =>
+                {
+                    if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
+                        return;
+                    Player thrower = e.ThrownBy;
+
+                    isIDTracked(thrower.SteamID);
+
+                    playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_THROWN, thrower.Team, 1);
 
                 //add duration a player blinded teammates or enemies
                 foreach (Player p in e.FlashedPlayers)
-                {
-                    if (p.FlashDuration > 0.3)
                     {
-                        isIDTracked(p.SteamID);
+                        if (p.FlashDuration > 0.3)
+                        {
+                            isIDTracked(p.SteamID);
 
-                        if (thrower.Team == p.Team)
-                            playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.TEAM_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
-                        else
-                            playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.ENEMY_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
+                            if (thrower.Team == p.Team)
+                                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.TEAM_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
+                            else
+                                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.ENEMY_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
 
                         //add duration each player was blinded
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DURATION_FLASHED, p.Team, (long)p.FlashDuration);
 
                         //increment successful flash counter
                         playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_SUCCESSFUL, thrower.Team, 1);
+                        }
                     }
-                }
 
-            };
+                };
 
-            parser.ExplosiveNadeExploded += (sender, e) =>
-            {
-                if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
-                    return;
-                Player thrower = e.ThrownBy;
-                isIDTracked(thrower.SteamID);
-                playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_THROWN, thrower.Team, 1);
-            };
-
-
-            parser.PlayerHurt += (sender, e) =>
-            {
-                if (!hasMatchStarted || e.Attacker == null || isBot(e.Attacker.SteamID) || isBot(e.Player.SteamID))
-                    return;
-                isIDTracked(e.Attacker.SteamID);
-                if (e.Weapon.Weapon.Equals(EquipmentElement.HE))
+                parser.ExplosiveNadeExploded += (sender, e) =>
                 {
-                    playerData[e.Attacker.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_DAMAGE, e.Attacker.Team, e.HealthDamage);
-                }
-            };
+                    if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
+                        return;
+                    Player thrower = e.ThrownBy;
+                    isIDTracked(thrower.SteamID);
+                    playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_THROWN, thrower.Team, 1);
+                };
 
-            parser.BombPlanted += (sender, e) =>
-            {
-                bombPlanted = true;
-            };
-            parser.BombDefused += (sender, e) =>
-            {
-                bombPlanted = false;
-            };
-            parser.BombExploded += (sender, e) =>
-            {
-                bombPlanted = false;
-            };
-            parser.ParseToEnd();
 
-            k.Dispose();
-            k.Close();
+                parser.PlayerHurt += (sender, e) =>
+                {
+                    if (!hasMatchStarted || e.Attacker == null || isBot(e.Attacker.SteamID) || isBot(e.Player.SteamID))
+                        return;
+                    isIDTracked(e.Attacker.SteamID);
+                    if (e.Weapon.Weapon.Equals(EquipmentElement.HE))
+                    {
+                        playerData[e.Attacker.SteamID].addNumber(parser.Map, PlayerData.STAT.GRENADE_DAMAGE, e.Attacker.Team, e.HealthDamage);
+                    }
+                };
 
-            fileName.Dispose();
-            fileName.Close();
-            isWaitingForDownload = false;
-        }
+                parser.BombPlanted += (sender, e) =>
+                {
+                    bombPlanted = true;
+                };
+                parser.BombDefused += (sender, e) =>
+                {
+                    bombPlanted = false;
+                };
+                parser.BombExploded += (sender, e) =>
+                {
+                    bombPlanted = false;
+                };
+                parser.ParseToEnd();
+
+                k.Dispose();
+                k.Close();
+
+                fileName.Dispose();
+                fileName.Close();
+                isWaitingForDownload = false;
+            }
 
         //Total nade value is important to know since a player that is good at using nades might be support player or some shit.
         private long totalNadeValue(Player victim)
@@ -802,11 +810,9 @@ namespace ECO
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL, killer.Team, 1);
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
                 //if the a T has anything less than ak and full kev we classify this as a forcebuy
-                //Console.WriteLine("Money: " + killer.CurrentEquipmentValue);
+                //for some reason playerData is run but doesnt work after the if-statements
                 if (((int)killer.Team == 2) && (killer.CurrentEquipmentValue < 3700))
                 {
-                    //Printar men funkar ändå inte??????
-                    //Console.WriteLine("FORCE OR ECO");
                     if (killer.CurrentEquipmentValue < 700)
                     {
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
@@ -822,8 +828,6 @@ namespace ECO
                             ENTRY_FRAG_ECO_T[killer.SteamID] = ENTRY_FRAG_ECO_T[killer.SteamID]++;
                         else
                             ENTRY_FRAG_ECO_T.Add(killer.SteamID, 1);
-
-
                         //this for some stupid reason doesnt work if placed here
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
@@ -845,19 +849,42 @@ namespace ECO
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
                     }
                 }
-
+                if (((int)killer.Team == 1) && (killer.CurrentEquipmentValue < 3650))
                 //if the CTs has anything less than vest + m4?????? we classify this as a forcebuy 650 +3100
-                if ((int)killer.Team == 1 && killer.CurrentEquipmentValue < 3650)
                 {
-                    if (killer.CurrentEquipmentValue <= 700)
+                    if (killer.CurrentEquipmentValue < 700)
                     {
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+
+                        if (FIRST_KILL_ECO_CT.ContainsKey(killer.SteamID))
+                            FIRST_KILL_ECO_CT[killer.SteamID] = FIRST_KILL_ECO_CT[killer.SteamID]++;
+                        else
+                        {
+                            FIRST_KILL_ECO_CT.Add(killer.SteamID, 1);
+                        }
+
+                        if (ENTRY_FRAG_ECO_CT.ContainsKey(killer.SteamID))
+                            ENTRY_FRAG_ECO_CT[killer.SteamID] = ENTRY_FRAG_ECO_CT[killer.SteamID]++;
+                        else
+                            ENTRY_FRAG_ECO_CT.Add(killer.SteamID, 1);
+                        //this for some stupid reason doesnt work if placed here
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
                     }
                     else
                     {
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
-                        playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                        if (FIRST_KILL_FORCE_CT.ContainsKey(killer.SteamID))
+                            FIRST_KILL_FORCE_CT[killer.SteamID] = FIRST_KILL_FORCE_CT[killer.SteamID]++;
+                        else
+                        {
+                            FIRST_KILL_FORCE_CT.Add(killer.SteamID, 1);
+                        }
+
+                        if (ENTRY_FRAG_FORCE_CT.ContainsKey(killer.SteamID))
+                            ENTRY_FRAG_FORCE_CT[killer.SteamID] = ENTRY_FRAG_FORCE_CT[killer.SteamID]++;
+                        else
+                            ENTRY_FRAG_FORCE_CT.Add(killer.SteamID, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                        //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
                     }
                 }
                 return;
