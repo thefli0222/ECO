@@ -57,8 +57,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 4;
+        public const int numberOfDownloadingThreads = 8; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 16;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -438,8 +438,16 @@ namespace ECO
                 foreach (Player p in parser.PlayingParticipants)
                 {
                     if (!isBot(p.SteamID)){
+                                FIRST_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                                ENTRY_FRAG_ECO_T.TryAdd(p.SteamID, 0);
+                                FIRST_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                                ENTRY_FRAG_FORCE_T.TryAdd(p.SteamID, 0);
+                                FIRST_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                                ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
+                                FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
+                                ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
-                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_CT[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, DemoInfo.Team.Terrorist, ENTRY_FRAG_ECO_T[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, DemoInfo.Team.CounterTerrorist, ENTRY_FRAG_ECO_CT[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, DemoInfo.Team.Terrorist, FIRST_KILL_FORCE_T[p.SteamID]);
@@ -811,21 +819,21 @@ namespace ECO
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG, killer.Team, 1);
                 //if the a T has anything less than ak and full kev we classify this as a forcebuy
                 //for some reason playerData is run but doesnt work after the if-statements
-                if (((int)killer.Team == 2) && (killer.CurrentEquipmentValue < 3700))
+                if ((killer.Team == DemoInfo.Team.Terrorist) && (killer.CurrentEquipmentValue < 3700))
                 {
                     if (killer.CurrentEquipmentValue < 700)
                     {
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
 
                         if (FIRST_KILL_ECO_T.ContainsKey(killer.SteamID))
-                            FIRST_KILL_ECO_T[killer.SteamID] = FIRST_KILL_ECO_T[killer.SteamID]++;
+                            FIRST_KILL_ECO_T[killer.SteamID]++;
                         else
                         {
                             FIRST_KILL_ECO_T.Add(killer.SteamID, 1);
                         }
 
                         if (ENTRY_FRAG_ECO_T.ContainsKey(killer.SteamID))
-                            ENTRY_FRAG_ECO_T[killer.SteamID] = ENTRY_FRAG_ECO_T[killer.SteamID]++;
+                            ENTRY_FRAG_ECO_T[killer.SteamID]++;
                         else
                             ENTRY_FRAG_ECO_T.Add(killer.SteamID, 1);
                         //this for some stupid reason doesnt work if placed here
@@ -835,35 +843,35 @@ namespace ECO
                     else
                     {
                         if (FIRST_KILL_FORCE_T.ContainsKey(killer.SteamID))
-                            FIRST_KILL_FORCE_T[killer.SteamID] = FIRST_KILL_FORCE_T[killer.SteamID]++;
+                            FIRST_KILL_FORCE_T[killer.SteamID]++;
                         else
                         {
                             FIRST_KILL_FORCE_T.Add(killer.SteamID, 1);
                         }
 
                         if (ENTRY_FRAG_FORCE_T.ContainsKey(killer.SteamID))
-                            ENTRY_FRAG_FORCE_T[killer.SteamID] = ENTRY_FRAG_FORCE_T[killer.SteamID]++;
+                            ENTRY_FRAG_FORCE_T[killer.SteamID]++;
                         else
                             ENTRY_FRAG_FORCE_T.Add(killer.SteamID, 1);
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
                     }
                 }
-                if (((int)killer.Team == 1) && (killer.CurrentEquipmentValue < 3650))
+                if ((killer.Team == DemoInfo.Team.CounterTerrorist) && (killer.CurrentEquipmentValue < 3650))
                 //if the CTs has anything less than vest + m4?????? we classify this as a forcebuy 650 +3100
                 {
                     if (killer.CurrentEquipmentValue < 700)
                     {
 
                         if (FIRST_KILL_ECO_CT.ContainsKey(killer.SteamID))
-                            FIRST_KILL_ECO_CT[killer.SteamID] = FIRST_KILL_ECO_CT[killer.SteamID]++;
+                            FIRST_KILL_ECO_CT[killer.SteamID]++;
                         else
                         {
                             FIRST_KILL_ECO_CT.Add(killer.SteamID, 1);
                         }
 
                         if (ENTRY_FRAG_ECO_CT.ContainsKey(killer.SteamID))
-                            ENTRY_FRAG_ECO_CT[killer.SteamID] = ENTRY_FRAG_ECO_CT[killer.SteamID]++;
+                            ENTRY_FRAG_ECO_CT[killer.SteamID]++;
                         else
                             ENTRY_FRAG_ECO_CT.Add(killer.SteamID, 1);
                         //this for some stupid reason doesnt work if placed here
@@ -873,14 +881,14 @@ namespace ECO
                     else
                     {
                         if (FIRST_KILL_FORCE_CT.ContainsKey(killer.SteamID))
-                            FIRST_KILL_FORCE_CT[killer.SteamID] = FIRST_KILL_FORCE_CT[killer.SteamID]++;
+                            FIRST_KILL_FORCE_CT[killer.SteamID]++;
                         else
                         {
                             FIRST_KILL_FORCE_CT.Add(killer.SteamID, 1);
                         }
 
                         if (ENTRY_FRAG_FORCE_CT.ContainsKey(killer.SteamID))
-                            ENTRY_FRAG_FORCE_CT[killer.SteamID] = ENTRY_FRAG_FORCE_CT[killer.SteamID]++;
+                            ENTRY_FRAG_FORCE_CT[killer.SteamID]++;
                         else
                             ENTRY_FRAG_FORCE_CT.Add(killer.SteamID, 1);
                         //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
