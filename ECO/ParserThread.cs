@@ -526,7 +526,7 @@ namespace ECO
                     }
                 }
                 countWait++;
-                if (countWait > 100) {
+                if (countWait > 0) {
                     File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
                     countWait = 0;
                 }
