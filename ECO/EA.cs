@@ -196,7 +196,7 @@ namespace ECO
                     children[0] = bestChild.Clone() as FatChild;
                 }
                 Random random = new Random();
-                for (int r = 1; r < children.Count; r++)
+                for (int r = children.Count-1; r>-1; r--)
                 {
                     if (random.NextDouble() > Math.Pow(0.95, r))
                     {
@@ -208,7 +208,7 @@ namespace ECO
                     }
                 }
 
-                for (int r = 1; r < children.Count; r++)
+                for (int r = 0; r < children.Count; r++)
                 {
                     if (random.NextDouble() > 0.7)
                     {
