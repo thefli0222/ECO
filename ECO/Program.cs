@@ -74,6 +74,10 @@ namespace ECO
 
 
 
+            EA evolution = new EA(0.7, 0.7, 0.5, 0.3, 10, temp, 30);
+
+            evolution.RunGenerations(100, 6);
+
             Kmeans kMean = new Kmeans(temp.getPlayerData(), numberOfClusters, weights);
             String tempString = "";
             for(int x = 0; x < kMean.getCentroids().Length; x++)
@@ -115,7 +119,7 @@ namespace ECO
             }*/
 
 
-            foreach (var row in System.IO.File.ReadAllLines(@"..\ECO\Save Files\matchresults.txt"))
+            /*foreach (var row in System.IO.File.ReadAllLines(@"..\ECO\Save Files\matchresults.txt"))
             {
 
                 long[] ctPlayers = new long[5];
@@ -139,7 +143,7 @@ namespace ECO
                     results[1] = long.Parse(matchResults[11]);
                     temp.GetMatchResults().AddMatchResult(ctPlayers, tPlayers, results);
                 }
-            }
+            }*/
 
             System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
 

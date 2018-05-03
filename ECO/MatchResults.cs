@@ -5,14 +5,15 @@ using System.Text;
 namespace ECO
 {
     
-    class MatchResults
+    class MatchResults : ICloneable
     {
         private List<long[]> matchResultList;
         public MatchResults()
         {
             matchResultList = new List<long[]>();
         }
-        
+
+        public List<long[]> MatchResultList { get => matchResultList; set => matchResultList = value; }
 
         public void AddMatchResult(long[] ctPlayers, long[] tPlayers, long[] results)
         {
@@ -51,6 +52,12 @@ namespace ECO
             }
             return temp;
         }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+
         public void ConvertToClassesFromKmeans(Kmeans kMeans)
         {
             for (int y = 0; y < matchResultList.Count; y++)
@@ -60,7 +67,7 @@ namespace ECO
                     long player = array[z];
                     for (int x = 0; x < kMeans.getCentroids().Length; x++)
                     {
-                        if (kMeans.getClusters()[x].Contains(player))
+                        if (kMeans.doesClusterContain(x,player))
                         {
                             matchResultList[y][z] = x;
                         };

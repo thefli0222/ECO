@@ -41,12 +41,13 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 4; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 10000000;
+        public const int stopValue = 10;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
         int count;
         int numberOfFiles;
+        int countWait;
         public MatchResults GetMatchResults()
         {
             return matchResults;
@@ -66,7 +67,7 @@ namespace ECO
             isDone = false;
             isWaitingForDownload = true;
             allFilesParsed = false;
-
+            countWait = 0;
             viewDirection = new Dictionary<long, (float, float)>();
 
             parsedFiles = new List<String>();
@@ -82,6 +83,34 @@ namespace ECO
             matchResults = new MatchResults();
 
             downloadStreamClasses = new DownloadStreamClass[numberOfDownloadingThreads];
+
+            foreach (var row in System.IO.File.ReadAllLines(@"..\ECO\Save Files\matchresults.txt"))
+            {
+
+                long[] ctPlayers = new long[5];
+                long[] tPlayers = new long[5];
+                long[] results = new long[2];
+
+                string[] matchResults = row.Split(" ");
+                if (matchResults.Length > 10)
+                {
+                    for (int x = 0; x < 10; x++)
+                    {
+                        if (x < 5)
+                        {
+                            ctPlayers[x] = long.Parse(matchResults[x]);
+                        }
+                        else
+                        {
+                            tPlayers[x - 5] = long.Parse(matchResults[x]);
+                        }
+                    }
+                    results[0] = long.Parse(matchResults[10]);
+                    results[1] = long.Parse(matchResults[11]);
+                    this.GetMatchResults().AddMatchResult(ctPlayers, tPlayers, results);
+                }
+            }
+
 
 
 
@@ -225,11 +254,11 @@ namespace ECO
                 {
                     if (downloadStreamClasses[x].IsReady == true)
                     {
-                        //try {
+                        try {
                         getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
-                        //} catch
+                        } catch
                         {
-                            //numberOfErrors++;
+                            numberOfErrors++;
                         }
                         parsedFiles.Add(downloadStreamClasses[x].GameLink);
                         downloadStreamClasses[x].IsReady = false;
@@ -278,9 +307,12 @@ namespace ECO
                 Console.WriteLine("Number of not found files: " + numberOfNotFoundFiles);
                 System.Threading.Thread.Sleep(1000);
                 currentCount++;
-
-                File.WriteAllLines(@"..\ECO\Save Files\parsedlinks.txt", parsedFiles);
-
+                try {
+                    File.WriteAllLines(@"..\ECO\Save Files\parsedlinks.txt", parsedFiles);
+                } catch
+                {
+                    Console.WriteLine("Save error");
+                }
             }
         }
 
@@ -385,8 +417,11 @@ namespace ECO
                 {
                     parsedGameData.Add(playerData[player].saveGame());
                 }
-
-                File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
+                countWait++;
+                if (countWait > 100) {
+                    File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
+                    countWait = 0;
+                }
             };
 
             //Features to be checked after each tick
@@ -597,7 +632,7 @@ namespace ECO
 
             parser.PlayerHurt += (sender, e) =>
             {
-                if (!hasMatchStarted || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
+                if (!hasMatchStarted || e.Player == null || e.Attacker == null || e.Attacker.SteamID == 0 || e.Player.SteamID == 0)
                     return;
                 if (!playerData.ContainsKey(e.Attacker.SteamID))
                 {

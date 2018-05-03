@@ -11,6 +11,7 @@ namespace ECO
         private static long theKey;
         private Dictionary<long, int> clustering;
         private Dictionary<long, double[]> allPoints;
+        private static Dictionary<long, double[]>  normalizedData;
         private static double[] weightValues;
         public Kmeans(Dictionary<long, PlayerData> rawData, int k, double[] weights)
         {
@@ -19,21 +20,93 @@ namespace ECO
                 k = 3;
             }
             weightValues = weights;
+            if(normalizedData == null)
+            {
+                normalizedData = Normalized(rawData);
+            }
 
-            Dictionary<long, double[]> data = Normalized(rawData);
+           
+
+
+            Dictionary<long, double[]> data = withWeights(normalizedData);
+
+
+            Dictionary<long, double[]> smallData = new Dictionary<long, double[]>();
+
+            
+
+
             bool changed = true; bool success = true;
             clustering = InitClustering(data.Keys.Count, k, 0, rawData);
+
+            var startTime = DateTime.Now;
+            /*
+            List<long> keyTemp = new List<long>();
+            keyTemp.AddRange(data.Keys);
+            Random random = new Random();
+            int tempKey;
+            long realKey;
+            for (int smallTest = 0; smallTest < data.Count / 20; smallTest++)
+            {
+                tempKey = random.Next(0, keyTemp.Count);
+                realKey = keyTemp[tempKey];
+                keyTemp.RemoveAt(tempKey);
+                smallData.Add(realKey, data[realKey]);
+            }
+            */
             centroids = Allocate(k, data[theKey].Length);
-            int maxCount = data.Keys.Count * 50;
+            int maxCount = 1;
             int iteration = 0;
-            while (changed == true && success == true && iteration < maxCount)
+            int maxCap = 0;
+            /*
+            while (changed == true && success == true && iteration < maxCount)// && maxCap < 5)
             {
                 iteration++;
-                success = UpdateMeans(data, clustering, centroids);
-                changed = UpdateClustering(data, clustering, centroids);
+                success = UpdateMeans(smallData, clustering, centroids);
+                changed = UpdateClustering(smallData, clustering, centroids);
+                maxCap++;
             }
-            Console.WriteLine("Stop");
+            changed = true; success = true;
+
+            //Console.WriteLine("-Fast stage: " + (DateTime.Now - startTime));*/
+            var startTimes = DateTime.Now;
+
+            maxCount = data.Keys.Count * 50;
+            iteration = 0;
+            maxCap = 0;
+            while (changed == true && success == true && iteration < maxCount)// && maxCap < 5)
+            {
+                iteration++;
+                //startTimes = DateTime.Now;
+                success = UpdateMeans(data, clustering, centroids);
+                //Console.WriteLine((DateTime.Now - startTimes).TotalMilliseconds);
+                //startTimes = DateTime.Now;
+                changed = UpdateClustering(data, clustering, centroids);
+                //Console.WriteLine((DateTime.Now - startTimes).TotalMilliseconds);
+                maxCap++;
+                //Console.WriteLine("-------------------------------------------");
+            }
+            //Console.WriteLine("--Slow Stage: " + (DateTime.Now - startTimes));
+            //Console.WriteLine("---Total: " + (DateTime.Now - startTime));
+            //Console.WriteLine((DateTime.Now - startTime).TotalMilliseconds);
+            //Console.WriteLine("-------------------------------------------");
             allPoints = data;
+        }
+
+        public Dictionary<long, double[]> withWeights(Dictionary<long, double[]> data){
+
+            Dictionary<long, double[]> result = new Dictionary<long, double[]>();
+            foreach (var key in data.Keys)
+            {
+                double[] temp = data[key];
+                for(int b=0; b < temp.Length; b++)
+                {
+                    temp[b] = temp[b] * weightValues[b];
+                }
+                result.Add(key, temp);
+            }
+            return result;
+
         }
 
         public Dictionary<int, ArrayList> getClusters()
@@ -77,7 +150,7 @@ namespace ECO
                 }
 
                 foreach (var key in result.Keys)
-                    result[key][j] = ((result[key][j] - mean) / sd)*weightValues[j];
+                    result[key][j] = ((result[key][j] - mean) / sd);
             }
             return result;
         }
@@ -100,20 +173,32 @@ namespace ECO
             return clustering;
         }
 
+        public bool doesClusterContain(int cluster, long value)
+        {
+            if (clustering.ContainsKey(value))
+            {
+                if (clustering[value] == cluster)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static bool UpdateMeans(Dictionary<long, double[]> data, Dictionary<long, int> clustering, double[][] centroids)
         {
             int count = data.Keys.Count;
             int numClusters = centroids.Length;
             int[] clusterCounts = new int[numClusters];
-            foreach (var key in data.Keys)
+            /*foreach (var key in data.Keys)
             {
                 int cluster = clustering[key];
                 clusterCounts[cluster]++;
-            }
+            }*/ // might be needed 
 
-            for (int k = 0; k < numClusters; k++)
-                if (clusterCounts[k] == 0)
-                    return false;
+            //0 check here ?
+
+            
 
             for (int k = 0; k < centroids.Length; k++)
                 for (int j = 0; j < centroids[k].Length; j++)
@@ -122,9 +207,14 @@ namespace ECO
             foreach (var key in data.Keys)
             {
                 int cluster = clustering[key]; // find me
+                clusterCounts[cluster]++; // Maybe remove
                 for (int j = 0; j < data[key].Length; ++j)
                     centroids[cluster][j] += data[key][j]; // accumulate sum
             }
+
+            for (int k = 0; k < numClusters; k++)
+                if (clusterCounts[k] == 0)
+                    return false;
 
             for (int k = 0; k < centroids.Length; ++k)
                 for (int j = 0; j < centroids[k].Length; ++j)
@@ -150,6 +240,7 @@ namespace ECO
             Dictionary<long, int> newClustering = new Dictionary<long, int>();
             foreach (var key in clustering.Keys)
                 newClustering[key] = clustering[key];
+
 
             double[] distances = new double[numClusters];
 
@@ -193,8 +284,9 @@ namespace ECO
         {
             double sumSquaredDiffs = 0.0;
             for (int j = 0; j < dataPoint.Length; ++j)
-                sumSquaredDiffs += Math.Pow((dataPoint[j] - centroid[j]), 2);
+                sumSquaredDiffs += (dataPoint[j] - centroid[j])*(dataPoint[j] - centroid[j]);
             return Math.Sqrt(sumSquaredDiffs);
+            //return Math.Pow(sumSquaredDiffs, 0.5);
         }
 
         private static int MinIndex(double[] distances)
@@ -280,17 +372,21 @@ namespace ECO
             double[] temp = { 0, 0 };
 
 
-            for (int b=0; b < 80; b++) {
+            for (int b = 0; b < 80; b++)
+            {
                 stepLength = 5;
-                if (b%4 == 0) {
+                if (b % 4 == 0)
+                {
                     oldX = -oldXBase * multiplier;
                     oldY = -oldYBase * multiplier;
                     multiplier *= 2;
-                } else if (b % 3 == 0)
+                }
+                else if (b % 3 == 0)
                 {
                     oldX = -oldXBase * multiplier;
                     oldY = oldYBase * multiplier;
-                } else if (b % 2 == 0)
+                }
+                else if (b % 2 == 0)
                 {
                     oldX = oldXBase * multiplier;
                     oldY = -oldYBase * multiplier;
@@ -301,18 +397,18 @@ namespace ECO
                     oldY = oldYBase * multiplier;
                 }
                 int x = 0;
-                while (stepLength > 0.001)
+                while (stepLength > 0.0000001)
                 {
                     oldValue = functionOfXY(o, p, f, g, h, oldX, oldY);
                     newX = oldX - (derivateX(o, p, f, g, h, oldX, oldY) * stepLength);
                     newY = oldY - (derivateY(o, p, f, g, h, oldX, oldY) * stepLength);
 
-                    
-                    if (x > 500000)
+
+                    if (x > 10000)
                     {
                         break;
                     }
-                    if(oldValue == 0)
+                    if (oldValue == 0)
                     {
                         break;
                     }
@@ -323,16 +419,21 @@ namespace ECO
 
                     newValue = functionOfXY(o, p, f, g, h, oldX, oldY);
 
-                    if(newValue > oldValue)
+                    if (newValue > oldValue)
                     {
                         stepLength = stepLength / 2;
                     }
                 }
-                
-                if(newValue < bestValue) {
-                    temp = new double[]{ oldX, oldY };
+
+                if (newValue < bestValue)
+                {
+                    newX = oldX - oldX / (derivateX(o, p, f, g, h, oldX, oldY));
+                    newY = oldY - oldY / (derivateY(o, p, f, g, h, oldX, oldY));
+                    temp = new double[] { oldX, oldY };
                     bestValue = newValue;
                 }
+
+
 
             }
 
@@ -343,7 +444,7 @@ namespace ECO
 
         private double functionOfXY(double o, double p, double f, double g, double h, double X, double Y)
         {
-            return Math.Abs(Math.Pow(X+Y, 2) - Math.Pow(f, 2)) + Math.Abs(Math.Pow((X - o)+Y, 2) - Math.Pow(g, 2)) + Math.Abs(Math.Pow(X + (Y - p), 2) - Math.Pow(h, 2));
+            return Math.Abs(Math.Pow(X + Y, 2) - Math.Pow(f, 2)) + Math.Abs(Math.Pow((X - o) + Y, 2) - Math.Pow(g, 2)) + Math.Abs(Math.Pow(X + (Y - p), 2) - Math.Pow(h, 2));
         }
 
         private double derivateX(double o, double p, double f, double g, double h, double X, double Y)
@@ -351,7 +452,7 @@ namespace ECO
             return (2 * X * (-Math.Pow(f, 2) + Math.Pow(X, 2) + Math.Pow(Y, 2))) / Math.Abs(-Math.Pow(f, 2) + Math.Pow(X, 2) + Math.Pow(Y, 2)) + (2 * (X - o) * (-Math.Pow(g, 2) + Math.Pow((X - o), 2) + Math.Pow(Y, 2))) / Math.Abs(-Math.Pow(g, 2) + Math.Pow((X - o), 2) + Math.Pow(Y, 2)) + (2 * X * (-Math.Pow(h, 2) + Math.Pow((Y - p), 2) + Math.Pow(X, 2))) / Math.Abs(-Math.Pow(h, 2) + Math.Pow(X, 2) + Math.Pow((Y - p), 2));
         }
 
-            private double derivateY(double o, double p, double f, double g, double h, double X, double Y)
+        private double derivateY(double o, double p, double f, double g, double h, double X, double Y)
         {
             return (2 * Y * (-Math.Pow(f, 2) + Math.Pow(X, 2) + Math.Pow(Y, 2))) / Math.Abs(-Math.Pow(f, 2) + Math.Pow(X, 2) + Math.Pow(Y, 2)) + (2 * Y * (-Math.Pow(g, 2) + Math.Pow((X - o), 2) + Math.Pow(Y, 2))) / Math.Abs(-Math.Pow(g, 2) + Math.Pow((X - o), 2) + Math.Pow(Y, 2)) + (2 * (Y - p) * (-Math.Pow(h, 2) + Math.Pow((Y - p), 2) + Math.Pow(X, 2))) / Math.Abs(-Math.Pow(h, 2) + Math.Pow(X, 2) + Math.Pow((Y - p), 2));
 
@@ -381,7 +482,7 @@ namespace ECO
 
             foreach (var point in centroids)
             {
-                if(Distance(centroids[1], point) > oldDistance && Distance(centroids[0], point) != 0)
+                if (Distance(centroids[1], point) > oldDistance && Distance(centroids[0], point) != 0)
                 {
                     oldDistance = Distance(centroids[1], point);
                     pointX = point;
@@ -517,28 +618,28 @@ namespace ECO
 
 
 
-                double[] Temp = getXnY(distanceX, distanceY, disO, disX, disY);
+                double[] Temp = { X, Y }; //getXnY(distanceX, distanceY, disO, disX, disY);
 
 
 
 
-               /* if (Math.Abs(Distance(pointXxY, Temp) - Distance(cluster, pointX)) < Math.Abs(Distance(pointXxY, TempNegative) - Distance(cluster, pointX)))
-                {
-                    //Temp = Temp;
-                    Console.WriteLine("Correct dis");
-                }
-                else
-                {
-                    Temp = TempNegative;
-                    Console.WriteLine("Not correct dis");
+                /* if (Math.Abs(Distance(pointXxY, Temp) - Distance(cluster, pointX)) < Math.Abs(Distance(pointXxY, TempNegative) - Distance(cluster, pointX)))
+                 {
+                     //Temp = Temp;
+                     Console.WriteLine("Correct dis");
+                 }
+                 else
+                 {
+                     Temp = TempNegative;
+                     Console.WriteLine("Not correct dis");
 
-                } */
+                 } */
 
-                
+
 
                 clusterAndPos[i].Add(Temp);
 
-                Console.WriteLine("X: " + X + " Y: " + Y + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY) + " DRX: " + disX + " DFX: " + Distance(Temp, pointXxY));
+                /*Console.WriteLine("X: " + X + " Y: " + Y + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY) + " DRX: " + disX + " DFX: " + Distance(Temp, pointXxY));*/
                 i++;
 
             }
@@ -558,7 +659,7 @@ namespace ECO
 
 
 
-                double[] Temp = getXnY(distanceX, distanceY, disO, disX, disY);
+                double[] Temp = { X, Y };
 
                 /*
                 double[] Temp = { X, Y };
@@ -596,9 +697,9 @@ namespace ECO
 
                 clusterAndPos[clustering[key]].Add(Temp);
 
-                Console.WriteLine("Key: " + key + "Cluster: " + clustering[key]);
+                /*Console.WriteLine("Key: " + key + "Cluster: " + clustering[key]);
 
-                Console.WriteLine("X: " + Temp[0] + " Y: " + Temp[1] + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY) + " DRX: " + disX + " DFX: " + Distance(Temp, pointXxY));
+                Console.WriteLine("X: " + Temp[0] + " Y: " + Temp[1] + " DRY: " + disY + " DFY: " + Distance(Temp, pointYxY) + " DRO: " + disO + " DFO: " + Distance(Temp, origoXY) + " DRX: " + disX + " DFX: " + Distance(Temp, pointXxY));*/
                 //i++;
 
             }

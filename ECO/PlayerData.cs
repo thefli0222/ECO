@@ -136,7 +136,8 @@ namespace ECO
                         dataMap.Add(map, new MapOverpass());
                         break;
                 }
-                dataMap[map].addData(team, (int)stat, number);
+                if(dataMap.ContainsKey(map))
+                    dataMap[map].addData(team, (int)stat, number);
             }
             if(team == DemoInfo.Team.CounterTerrorist) {
                 currentStats[((int)stat) + 2] += number;
@@ -181,7 +182,8 @@ namespace ECO
                         dataMap.Add(map, new MapDust2());
                         break;
                 }
-                dataMap[map].addRound(team, number);
+                if (dataMap.ContainsKey(map))
+                    dataMap[map].addRound(team, number);
             }
             if (team == DemoInfo.Team.CounterTerrorist)
             {
