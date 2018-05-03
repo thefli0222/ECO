@@ -62,7 +62,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 6;
+        public const int stopValue = 12;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -272,12 +272,12 @@ namespace ECO
                 {
                     if (downloadStreamClasses[x].IsReady == true)
                     {
-                        try {
+                        //try {
                         getInfoFromFile(downloadStreamClasses[x].DownloadedFile);
-                        } catch
-                        {
+                        //} catch
+                        /*{
                             numberOfErrors++;
-                        }
+                        }*/
                         parsedFiles.Add(downloadStreamClasses[x].GameLink);
                         downloadStreamClasses[x].IsReady = false;
                         count++;
