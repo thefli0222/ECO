@@ -11,7 +11,7 @@ namespace ECO
         private static long theKey;
         private Dictionary<long, int> clustering;
         private Dictionary<long, double[]> allPoints;
-        private static Dictionary<long, double[]>  normalizedData;
+        private Dictionary<long, double[]>  normalizedData;
         private static double[] weightValues;
         public Kmeans(Dictionary<long, PlayerData> rawData, int k, double[] weights)
         {

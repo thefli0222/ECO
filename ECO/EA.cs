@@ -16,6 +16,9 @@ namespace ECO
         private int pickRate;
         private ParserThread data;
         private static int numberOfThreads = 6;
+
+        internal FatChild BestChild { get => bestChild; set => bestChild = value; }
+
         public EA(double prefrence, double selectionPara, double mutationRate, double incestControl, int childrenAmount, ParserThread data, int pickRate)
         {
             children = new List<FatChild>();
@@ -111,7 +114,7 @@ namespace ECO
                                     {
                                         winLossFittness = 1;
                                     }
-                                    Console.WriteLine(winLossFittness);
+                                    //Console.WriteLine(winLossFittness);
 
                                     double averageDistance = 0;
                                     double[][] oldPos = kMean.getCentroids();

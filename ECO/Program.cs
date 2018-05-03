@@ -74,9 +74,12 @@ namespace ECO
 
             System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
 
-            EA evolution = new EA(0.7, 0.7, 0.5, 0.3, 10, temp, 30);
+            EA evolution = new EA(0.7, 0.7, 0.5, 0.3, 40, temp, 20);
             
-            evolution.RunGenerations(5, 6);
+            
+            evolution.RunGenerations(10, 6);
+
+            weights = evolution.BestChild.Weights;
 
             Kmeans kMean = new Kmeans(temp.getPlayerData(), numberOfClusters, weights);
             String tempString = "";
