@@ -72,11 +72,11 @@ namespace ECO
             //string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory() + @"/Demo links/", "*.dem");
             ParserThread temp = new ParserThread("", "*.dem");
 
-
+            System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
 
             EA evolution = new EA(0.7, 0.7, 0.5, 0.3, 10, temp, 30);
-
-            evolution.RunGenerations(100, 6);
+            
+            evolution.RunGenerations(5, 6);
 
             Kmeans kMean = new Kmeans(temp.getPlayerData(), numberOfClusters, weights);
             String tempString = "";
@@ -144,8 +144,6 @@ namespace ECO
                     temp.GetMatchResults().AddMatchResult(ctPlayers, tPlayers, results);
                 }
             }*/
-
-            System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
 
             temp.GetMatchResults().ConvertToClassesFromKmeans(kMean);
             System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
