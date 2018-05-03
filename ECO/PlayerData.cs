@@ -7,7 +7,7 @@ namespace ECO
     public class PlayerData
     {
         public enum STAT { KILL, DEATH, FLASH_THROWN, SMOKE_THROWN, GRENADE_THROWN,
-                            MOLOTOV_THROWN, STEP, CROUCH, FIRST_KILL, SMG_FRAG, SHOTGUN_FRAG, MACHINEGUN_FRAG, //molly not working
+                            /*MOLOTOV_THROWN,*/ STEP, CROUCH, FIRST_KILL, SMG_FRAG, /*SHOTGUN_FRAG, MACHINEGUN_FRAG,*/ //molly not working
                             RIFLE_FRAG, SNIPER_FRAG, PISTOL_FRAG, TRADE_KILL, GRENADE_DAMAGE,
                             SITE_KILL, T_ENTRY_KILL, CT_ENTRY_KILL, MID_KILL, SITE_SPENT,
                             T_ENTRY_SPENT, CT_ENTRY_SPENT, MID_SPENT, ENEMY_DURATION_FLASHED, TEAM_DURATION_FLASHED,
