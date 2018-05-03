@@ -12,7 +12,7 @@ using System.Windows.Input;
 
 namespace ECO
 {
-    public enum WeaponType { Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Unknown };
+    public enum WeaponType { Rifle, Shotgun, Sniper, Pistol, SMG, MachineGun, Other };
     public enum Site { A_Site, B_Site, A_T_Entry, B_T_Entry, A_CT_Entry, B_CT_Entry, Mid, Other };
 
     class ParserThread
@@ -33,10 +33,14 @@ namespace ECO
         private Dictionary<long, int> ENTRY_FRAG_ECO_T = new Dictionary<long, int>();
         private Dictionary<long, int> FIRST_KILL_FORCE_T = new Dictionary<long, int>();
         private Dictionary<long, int> ENTRY_FRAG_FORCE_T = new Dictionary<long, int>();
+        private Dictionary<long, int> TRADE_KILL_FORCE_T = new Dictionary<long, int>();
+        private Dictionary<long, int> TRADE_KILL_ECO_T = new Dictionary<long, int>();
         private Dictionary<long, int> FIRST_KILL_ECO_CT = new Dictionary<long, int>();
         private Dictionary<long, int> ENTRY_FRAG_ECO_CT = new Dictionary<long, int>();
         private Dictionary<long, int> FIRST_KILL_FORCE_CT = new Dictionary<long, int>();
         private Dictionary<long, int> ENTRY_FRAG_FORCE_CT = new Dictionary<long, int>();
+        private Dictionary<long, int> TRADE_KILL_FORCE_CT = new Dictionary<long, int>();
+        private Dictionary<long, int> TRADE_KILL_ECO_CT = new Dictionary<long, int>();
 
         //stores the tick of the last kill
         //currently not used TODO
@@ -57,8 +61,8 @@ namespace ECO
         Boolean allFilesParsed;
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
-        public const int numberOfDownloadingThreads = 8; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 16;
+        public const int numberOfDownloadingThreads = 3; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
+        public const int stopValue = 6;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -357,6 +361,10 @@ namespace ECO
             ENTRY_FRAG_ECO_CT.Clear();
             FIRST_KILL_FORCE_CT.Clear();
             ENTRY_FRAG_FORCE_CT.Clear();
+            TRADE_KILL_ECO_T.Clear();
+            TRADE_KILL_FORCE_T.Clear();
+            TRADE_KILL_ECO_CT.Clear();
+            TRADE_KILL_FORCE_CT.Clear();
 
             var parser = new DemoParser(k);
 
@@ -377,6 +385,10 @@ namespace ECO
                             ENTRY_FRAG_ECO_CT.TryAdd(P.SteamID, 0);
                             FIRST_KILL_FORCE_CT.TryAdd(P.SteamID, 0);
                             ENTRY_FRAG_FORCE_CT.TryAdd(P.SteamID, 0);
+                            TRADE_KILL_ECO_T.TryAdd(P.SteamID, 0);
+                            TRADE_KILL_FORCE_T.TryAdd(P.SteamID, 0);
+                            TRADE_KILL_ECO_CT.TryAdd(P.SteamID, 0);
+                            TRADE_KILL_FORCE_CT.TryAdd(P.SteamID, 0);
                         }
                     }
                 }
@@ -417,6 +429,10 @@ namespace ECO
                             ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
                             FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
                             ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
                         }
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.AMOUNT_OF_MONEY, p.Team, p.Money);
                     }
@@ -443,6 +459,10 @@ namespace ECO
                             ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
                             FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
                             ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                            TRADE_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
                         }
                         playerData[p.SteamID].addRound(parser.Map, p.Team, 1);
                         //this is to prevent people who die early in the round to get the same
@@ -470,14 +490,18 @@ namespace ECO
                 foreach (Player p in parser.PlayingParticipants)
                 {
                     if (!isBot(p.SteamID)){
-                                FIRST_KILL_ECO_T.TryAdd(p.SteamID, 0);
-                                ENTRY_FRAG_ECO_T.TryAdd(p.SteamID, 0);
-                                FIRST_KILL_FORCE_T.TryAdd(p.SteamID, 0);
-                                ENTRY_FRAG_FORCE_T.TryAdd(p.SteamID, 0);
-                                FIRST_KILL_ECO_CT.TryAdd(p.SteamID, 0);
-                                ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
-                                FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
-                                ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
+                        FIRST_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                        ENTRY_FRAG_ECO_T.TryAdd(p.SteamID, 0);
+                        FIRST_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                        ENTRY_FRAG_FORCE_T.TryAdd(p.SteamID, 0);
+                        FIRST_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                        ENTRY_FRAG_ECO_CT.TryAdd(p.SteamID, 0);
+                        FIRST_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
+                        ENTRY_FRAG_FORCE_CT.TryAdd(p.SteamID, 0);
+                        TRADE_KILL_ECO_T.TryAdd(p.SteamID, 0);
+                        TRADE_KILL_FORCE_T.TryAdd(p.SteamID, 0);
+                        TRADE_KILL_ECO_CT.TryAdd(p.SteamID, 0);
+                        TRADE_KILL_FORCE_CT.TryAdd(p.SteamID, 0);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.Terrorist, FIRST_KILL_ECO_T[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, DemoInfo.Team.CounterTerrorist, FIRST_KILL_ECO_CT[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, DemoInfo.Team.Terrorist, ENTRY_FRAG_ECO_T[p.SteamID]);
@@ -486,6 +510,11 @@ namespace ECO
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, DemoInfo.Team.CounterTerrorist, FIRST_KILL_FORCE_CT[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, DemoInfo.Team.Terrorist, ENTRY_FRAG_FORCE_T[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, DemoInfo.Team.CounterTerrorist, ENTRY_FRAG_FORCE_CT[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_ECO, DemoInfo.Team.Terrorist, TRADE_KILL_ECO_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_ECO, DemoInfo.Team.CounterTerrorist, TRADE_KILL_ECO_CT[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_FORCE, DemoInfo.Team.Terrorist, TRADE_KILL_FORCE_T[p.SteamID]);
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_FORCE, DemoInfo.Team.CounterTerrorist, TRADE_KILL_FORCE_CT[p.SteamID]);
+
                     }
                     foreach (long player in ctPlayers)
                     {
@@ -630,14 +659,14 @@ namespace ECO
 
                 //does not track ThrownBy
                 //use FireNadeWithOwnerStarted, but that event doesn not exist???
-                parser.FireNadeStarted += (sender, e) =>
+                /*parser.FireNadeStarted += (sender, e) =>
                 {
                     if (!hasMatchStarted || e.ThrownBy == null || isBot(e.ThrownBy.SteamID))
                         return;
                     Player thrower = e.ThrownBy;
                     isIDTracked(thrower.SteamID);
                     playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.MOLOTOV_THROWN, thrower.Team, 1);
-                };
+                };*/
 
 
                 parser.FlashNadeExploded += (sender, e) =>
@@ -956,7 +985,7 @@ namespace ECO
 
         public void handleKill(Player killer, DemoParser parser)
         {
-            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) != WeaponType.Unknown)
+            if (killer.ActiveWeapon != null && getWeaponType(killer.ActiveWeapon.Weapon) != WeaponType.Other)
             {
                 WeaponType w = getWeaponType(killer.ActiveWeapon.Weapon);
 
@@ -965,9 +994,9 @@ namespace ECO
                     case WeaponType.Rifle:
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.RIFLE_FRAG, killer.Team, 1);
                         break;
-                    case WeaponType.Shotgun:
+                    /*case WeaponType.Shotgun:
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SHOTGUN_FRAG, killer.Team, 1);
-                        break;
+                        break;*/
                     case WeaponType.Sniper:
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SNIPER_FRAG, killer.Team, 1);
                         break;
@@ -977,9 +1006,9 @@ namespace ECO
                     case WeaponType.SMG:
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.SMG_FRAG, killer.Team, 1);
                         break;
-                    case WeaponType.MachineGun:
+                    /*case WeaponType.MachineGun:
                         playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.MACHINEGUN_FRAG, killer.Team, 1);
-                        break;
+                        break;*/
                     default:
                         return;
                 }
@@ -1009,11 +1038,6 @@ namespace ECO
                 case EquipmentElement.Mac10:
                 case EquipmentElement.P90:
                     return WeaponType.SMG;
-                case EquipmentElement.Nova:
-                case EquipmentElement.SawedOff:
-                case EquipmentElement.Swag7:
-                case EquipmentElement.XM1014:
-                    return WeaponType.Shotgun;
                 case EquipmentElement.AWP:
                 case EquipmentElement.Scout:
                 case EquipmentElement.G3SG1:
@@ -1032,9 +1056,12 @@ namespace ECO
                     return WeaponType.Pistol;
                 case EquipmentElement.Negev:
                 case EquipmentElement.M249:
-                    return WeaponType.MachineGun;
+                case EquipmentElement.Nova:
+                case EquipmentElement.SawedOff:
+                case EquipmentElement.Swag7:
+                case EquipmentElement.XM1014:
                 default:
-                    return WeaponType.Unknown;
+                    return WeaponType.Other;
             }
         }
 
@@ -1047,6 +1074,84 @@ namespace ECO
                 if (entry.Value > (parser.CurrentTime - 2))
                 {
                     playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL, killer.Team, 1);
+
+                    if (/*(killer.Team == DemoInfo.Team.Terrorist) &&*/ (killer.CurrentEquipmentValue < 3700))
+                    {
+                        if (killer.CurrentEquipmentValue < 700)
+                        {
+                            playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_ECO, killer.Team, 1);
+                            /*
+                            if (FIRST_KILL_ECO_T.ContainsKey(killer.SteamID))
+                                FIRST_KILL_ECO_T[killer.SteamID]++;
+                            else
+                            {
+                                FIRST_KILL_ECO_T.Add(killer.SteamID, 1);
+                            }
+
+                            if (ENTRY_FRAG_ECO_T.ContainsKey(killer.SteamID))
+                                ENTRY_FRAG_ECO_T[killer.SteamID]++;
+                            else
+                                ENTRY_FRAG_ECO_T.Add(killer.SteamID, 1);
+                            //this for some stupid reason doesnt work if placed here
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+                        */}
+                        else
+                        {
+                            playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_FORCE, killer.Team, 1);
+                            /*if (FIRST_KILL_FORCE_T.ContainsKey(killer.SteamID))
+                                FIRST_KILL_FORCE_T[killer.SteamID]++;
+                            else
+                            {
+                                FIRST_KILL_FORCE_T.Add(killer.SteamID, 1);
+                            }
+
+                            if (ENTRY_FRAG_FORCE_T.ContainsKey(killer.SteamID))
+                                ENTRY_FRAG_FORCE_T[killer.SteamID]++;
+                            else
+                                ENTRY_FRAG_FORCE_T.Add(killer.SteamID, 1);
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                        */}
+                    }
+                    /*if ((killer.Team == DemoInfo.Team.CounterTerrorist) && (killer.CurrentEquipmentValue < 3650))
+                    //if the CTs has anything less than vest + m4?????? we classify this as a forcebuy 650 +3100
+                    {
+                        if (killer.CurrentEquipmentValue < 700)
+                        {
+
+                            if (FIRST_KILL_ECO_CT.ContainsKey(killer.SteamID))
+                                FIRST_KILL_ECO_CT[killer.SteamID]++;
+                            else
+                            {
+                                FIRST_KILL_ECO_CT.Add(killer.SteamID, 1);
+                            }
+
+                            if (ENTRY_FRAG_ECO_CT.ContainsKey(killer.SteamID))
+                                ENTRY_FRAG_ECO_CT[killer.SteamID]++;
+                            else
+                                ENTRY_FRAG_ECO_CT.Add(killer.SteamID, 1);
+                            //this for some stupid reason doesnt work if placed here
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_ECO, killer.Team, 1);
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_ECO, killer.Team, 1);
+                        }
+                        else
+                        {
+                            if (FIRST_KILL_FORCE_CT.ContainsKey(killer.SteamID))
+                                FIRST_KILL_FORCE_CT[killer.SteamID]++;
+                            else
+                            {
+                                FIRST_KILL_FORCE_CT.Add(killer.SteamID, 1);
+                            }
+
+                            if (ENTRY_FRAG_FORCE_CT.ContainsKey(killer.SteamID))
+                                ENTRY_FRAG_FORCE_CT[killer.SteamID]++;
+                            else
+                                ENTRY_FRAG_FORCE_CT.Add(killer.SteamID, 1);
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.FIRST_KILL_FORCE, killer.Team, 1);
+                            //playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ENTRY_FRAG_FORCE, killer.Team, 1);
+                        }
+                    }*/
                 }
             }
         }

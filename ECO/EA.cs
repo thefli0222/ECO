@@ -107,6 +107,10 @@ namespace ECO
                                         winLossFittness += 1 - Math.Abs(0.5 - ((double)wins[x]/(double)(wins[x] + losses[x])));
                                     }
                                     winLossFittness = winLossFittness / wins.Length;
+                                    if(winLossFittness > 1)
+                                    {
+                                        winLossFittness = 1;
+                                    }
                                     Console.WriteLine(winLossFittness);
 
                                     double averageDistance = 0;
@@ -173,7 +177,7 @@ namespace ECO
                     threadsAlive = false;
                     for (int threadNum = 0; threadNum < numberOfThreads; threadNum++)
                     {
-                        if (dowloadingStreamThreads[threadNum].IsAlive)
+                        if (dowloadingStreamThreads[threadNum] != null && dowloadingStreamThreads[threadNum].IsAlive)
                         {
                             threadsAlive = true;
                         }

@@ -55,7 +55,34 @@ namespace ECO
 
         public object Clone()
         {
-            return this.MemberwiseClone();
+            MatchResults returnMatchResults = new MatchResults();
+
+            foreach (var row in matchResultList)
+            {
+
+                long[] ctPlayers = new long[5];
+                long[] tPlayers = new long[5];
+                long[] results = new long[2];
+                if (row.Length > 10)
+                {
+                    for (int x = 0; x < 10; x++)
+                    {
+                        if (x < 5)
+                        {
+                            ctPlayers[x] = row[x];
+                        }
+                        else
+                        {
+                            tPlayers[x - 5] = row[x];
+                        }
+                    }
+                    results[0] = row[10];
+                    results[1] = row[11];
+                    returnMatchResults.AddMatchResult(ctPlayers, tPlayers, results);
+                }
+            }
+
+            return returnMatchResults;
         }
 
         public void ConvertToClassesFromKmeans(Kmeans kMeans)
