@@ -38,11 +38,11 @@ namespace ECO
         public void setFittness(double stabilityFittness, double winLossFittness)
         {
             this.stabilityFittness = Math.Pow(stabilityFittness,2);
-            this.winLossFittness = Math.Pow(winLossFittness,2);
+            this.winLossFittness = Math.Pow(winLossFittness,3);
             weightsFittness = 0;
             foreach (double w in weights) weightsFittness += w;
             weightsFittness = weightsFittness / weights.Length;
-            lastFittness = stabilityFittness * winLossFittness * weightsFittness;
+            lastFittness = this.stabilityFittness * this.winLossFittness * this.weightsFittness;
         }
 
 

@@ -58,6 +58,7 @@ namespace ECO
                                 {
                                     Kmeans kMean;
                                     double winLossFittness;
+                                    double totalAmountOfPoints = 0;
                                     MatchResults theMatchResults = new MatchResults();
                                     kMean = new Kmeans(data.getPlayerData(), numberOfClusters, child.Weights);
                                     theMatchResults = data.GetMatchResults().Clone() as MatchResults;
@@ -107,12 +108,17 @@ namespace ECO
                                     winLossFittness = 0;
                                     for (int x = 0; x < wins.Length; x++)
                                     {
-                                        winLossFittness += 1 - Math.Abs(0.5 - ((double)wins[x]/(double)(wins[x] + losses[x])));
+                                        winLossFittness += (1 - Math.Abs(0.5 - ((double)wins[x]/(double)(wins[x] + losses[x]))))*(double)(wins[x] + losses[x]);
+                                        totalAmountOfPoints += (wins[x] + losses[x]);
                                     }
-                                    winLossFittness = winLossFittness / wins.Length;
+                                    winLossFittness = winLossFittness / (totalAmountOfPoints);
                                     if(winLossFittness > 1)
                                     {
                                         winLossFittness = 1;
+                                    }
+                                    else if (winLossFittness == Double.NaN)
+                                    {
+                                        winLossFittness = 0;
                                     }
                                     //Console.WriteLine(winLossFittness);
 
@@ -205,7 +211,7 @@ namespace ECO
                 Random random = new Random();
                 for (int r = children.Count-1; r>-1; r--)
                 {
-                    if (random.NextDouble() > Math.Pow(0.95, r))
+                    if (random.NextDouble() > Math.Pow(0.98, r))
                     {
                         children[r].breed(stupidSelectionMethod());
                     }
@@ -217,11 +223,7 @@ namespace ECO
 
                 for (int r = 0; r < children.Count; r++)
                 {
-                    if (random.NextDouble() > 0.7)
-                    {
-                        children[r].mutate(mutationRate);
-                    }
-
+                    children[r].mutate(mutationRate);
                 }
                 Console.WriteLine(bestChild.FittnessString());
             }

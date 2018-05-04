@@ -7,31 +7,32 @@ namespace ECO
 {
     class Program
     {
-        static int numberOfClusters = 6;
+        static int[] clusterValues = { 8, 16, 32 };
         static void Main(string[] args)
         {
-            double[] weights = new double[Enum.GetNames(typeof(PlayerData.STAT)).Length * 2];
-
+            double[][] weights = new double[5][];
+            weights[0] = new double[Enum.GetNames(typeof(PlayerData.STAT)).Length * 2];
             int t = 0;
             foreach (var ping in Enum.GetNames(typeof(PlayerData.STAT)))
             {
-                weights[t] = 1;
+                weights[0][t] = 1;
                 t++;
             }
             foreach (var ping in Enum.GetNames(typeof(PlayerData.STAT)))
             {
-                weights[t] = 1;
+                weights[0][t] = 1;
                 t++;
             }
 
 
+            weights[1] = new double[Enum.GetNames(typeof(PlayerData.STAT)).Length * 2];
 
             int c = 0;
             foreach (var value in System.IO.File.ReadAllText(@"..\ECO\Save Files\weights.txt").Split(" "))
             {
                 if (value != "")
                 {
-                    weights[c] = double.Parse(value);
+                    weights[1][c] = double.Parse(value);
                 }
                 c++;
             }
@@ -43,25 +44,25 @@ namespace ECO
                 t = 0;
                 foreach (var ping in Enum.GetNames(typeof(PlayerData.STAT)))
                 {
-                    Console.WriteLine(t + ": " + "CT " + ping.ToString() + "W: " + weights[t]);
+                    Console.WriteLine(t + ": " + "CT " + ping.ToString() + "W: " + weights[1][t]);
                     t++;
                 }
                 foreach (var ping in Enum.GetNames(typeof(PlayerData.STAT)))
                 {
-                    Console.WriteLine(t + ": " + "T " + ping.ToString() + "W: " + weights[t]);
+                    Console.WriteLine(t + ": " + "T " + ping.ToString() + "W: " + weights[1][t]);
                     t++;
                 }
                 Console.WriteLine("To change a weight input the number of the weight and it's value, example 1 0,5... Input n/N when you are finished.");
                 input = Console.ReadLine();
 
                 valuesInput = input.Split(" ");
-                if(valuesInput.Length > 1)
-                    weights[int.Parse(valuesInput[0])] = double.Parse(valuesInput[1]);
+                if (valuesInput.Length > 1)
+                    weights[1][int.Parse(valuesInput[0])] = double.Parse(valuesInput[1]);
                 Console.Clear();
             }
 
             string weightsString = "";
-            foreach (var value in weights)
+            foreach (var value in weights[1])
             {
                 weightsString += value + " ";
             }
@@ -74,43 +75,22 @@ namespace ECO
 
             System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
 
-            EA evolution = new EA(0.7, 0.7, 0.5, 0.3, 40, temp, 20);
-            
-            
-            evolution.RunGenerations(10, 6);
+            EA evolution = new EA(0.7, 0.7, (1 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 50, temp, 20);
+            evolution.RunGenerations(1, 8);
 
-            weights = evolution.BestChild.Weights;
+            weights[2] = evolution.BestChild.Weights;
 
-            Kmeans kMean = new Kmeans(temp.getPlayerData(), numberOfClusters, weights);
-            String tempString = "";
-            for(int x = 0; x < kMean.getCentroids().Length; x++)
-            {
-                tempString = "";
-                tempString += x + ": " ;
-                for (int i = 0; i < kMean.getCentroids()[x].Length; i++)
-                {
-                    tempString += kMean.getCentroids()[x][i] + " | ";
-                }
-                Console.WriteLine(tempString);
+            evolution = new EA(0.7, 0.7, (1 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 50, temp, 20);
+            evolution.RunGenerations(1, 16);
 
-                {
-                    tempString = "";
-                    tempString += x + ": ";
-                    if(kMean.getClusters()[x] != null)
-                        foreach (var value in kMean.getClusters()[x])
-                        {
-                            tempString += value + " | ";
-                        }
-                    Console.WriteLine(tempString);
-                }
-            }
+            weights[3] = evolution.BestChild.Weights;
+
+            evolution = new EA(0.7, 0.7, (1 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 50, temp, 20);
+            evolution.RunGenerations(1, 32);
+
+            weights[4] = evolution.BestChild.Weights;
 
 
-            
-            Dictionary<int, List<double[]>> pointsIn2D = new Dictionary<int, List<double[]>>();
-
-
-            pointsIn2D = kMean.getClustersAs2DPoints();
 
             /*foreach(var key in pointsIn2D.Keys)
             {
@@ -147,50 +127,211 @@ namespace ECO
                     temp.GetMatchResults().AddMatchResult(ctPlayers, tPlayers, results);
                 }
             }*/
-
-            temp.GetMatchResults().ConvertToClassesFromKmeans(kMean);
-            System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
-
-
-            long[] wins = new long[numberOfClusters];
-            long[] losses = new long[numberOfClusters];
-            foreach (var row in temp.GetMatchResults().AsString().Split("\n"))
-            {
-                string[] matchResults = row.Split(" ");
-                if (row != "" && matchResults.Length > 5) {
-                    for (int x = 0; x < 10; x++)
+            string[] weightNames = { "NON", "SELF", "EAO8", "EAO16", "EAO32" };
+            foreach (int clusterAmount in clusterValues)
+                for (int testNum = 0; testNum < weights.Length; testNum++)
+                {
+                    { /*
+                Kmeans kMean = new Kmeans(temp.getPlayerData(), numberOfClusters, weights[2]);
+                String tempString = "";
+                for (int x = 0; x < kMean.getCentroids().Length; x++)
+                {
+                    tempString = "";
+                    tempString += x + ": ";
+                    for (int i = 0; i < kMean.getCentroids()[x].Length; i++)
                     {
-                        if(long.Parse(matchResults[x]) < numberOfClusters) {
-                            if (x < 5)
+                        tempString += kMean.getCentroids()[x][i] + " | ";
+                    }
+                    Console.WriteLine(tempString);
+
+                    {
+                        tempString = "";
+                        tempString += x + ": ";
+                        if (kMean.getClusters()[x] != null)
+                            foreach (var value in kMean.getClusters()[x])
                             {
-                                if (int.Parse(matchResults[10]) > int.Parse(matchResults[11]))
-                                {
-                                    wins[long.Parse(matchResults[x])]++;
-                                }
-                                else
-                                {
-                                    losses[long.Parse(matchResults[x])]++;
-                                }
+                                tempString += value + " | ";
                             }
-                            else
+                        Console.WriteLine(tempString);
+                    }
+                */
+                    }
+
+
+                    Kmeans kMean;
+                    double winLossFittness;
+                    double totalAmountOfPoints = 0;
+                    MatchResults theMatchResults = new MatchResults();
+                    kMean = new Kmeans(temp.getPlayerData(), clusterAmount, weights[testNum]);
+                    theMatchResults = temp.GetMatchResults().Clone() as MatchResults;
+                    theMatchResults.ConvertToClassesFromKmeans(kMean);
+
+                    long[] wins = new long[clusterAmount];
+                    long[] losses = new long[clusterAmount];
+                    long[] row;
+                    for (int rowNum = 0; rowNum < theMatchResults.MatchResultList.Count; rowNum++)
+                    {
+                        row = theMatchResults.MatchResultList[rowNum];
+                        //foreach (var row in theMatchResults.MatchResultList)
+                        //{ 
+                        if (row.Length > 5)
+                        {
+                            for (int x = 0; x < 10; x++)
                             {
-                                if (int.Parse(matchResults[10]) < int.Parse(matchResults[11]))
+                                if (row[x] < clusterAmount)
                                 {
-                                    wins[long.Parse(matchResults[x])]++;
-                                }
-                                else
-                                {
-                                    losses[long.Parse(matchResults[x])]++;
+                                    if (x < 5)
+                                    {
+                                        if (row[10] > row[11])
+                                        {
+                                            wins[row[x]]++;
+                                        }
+                                        else
+                                        {
+                                            losses[row[x]]++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (row[10] < row[11])
+                                        {
+                                            wins[row[x]]++;
+                                        }
+                                        else
+                                        {
+                                            losses[row[x]]++;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }
-           
-            UIGeneratorClass UI = new UIGeneratorClass(pointsIn2D, kMean.getCentroids(), temp.getStats(), wins, losses);
-            UI.generateHTML();
 
+                    winLossFittness = 0;
+                    for (int x = 0; x < wins.Length; x++)
+                    {
+                        winLossFittness += (1 - Math.Abs(0.5 - ((double)wins[x] / (double)(wins[x] + losses[x])))) * (double)(wins[x] + losses[x]);
+                        totalAmountOfPoints += (wins[x] + losses[x]);
+                    }
+                    winLossFittness = winLossFittness / (totalAmountOfPoints);
+                    if (winLossFittness > 1)
+                    {
+                        winLossFittness = 1;
+                    } else if (winLossFittness == Double.NaN)
+                    {
+                        winLossFittness = 0;
+                    }
+                    //Console.WriteLine(winLossFittness);
+
+                    double averageDistance = 0;
+                    double[][] oldPos = kMean.getCentroids();
+                    List<int> takenNumbers = new List<int>();
+                    double lowestDis;
+                    double thisDis;
+                    int tempVal = 0;
+                    double stabilityFittness = 0;
+                    for (int x = 0; x < 2; x++)
+                    {
+                        foreach (double[] p in oldPos)
+                        {
+                            foreach (double[] cent in kMean.getCentroids())
+                            {
+                                averageDistance += Math.Sqrt(Math.Pow(p[0] - cent[0], 2) + Math.Pow(p[1] - cent[1], 2));
+                            }
+                        }
+                        averageDistance = averageDistance / (oldPos.Length * oldPos.Length);
+
+                        kMean = new Kmeans(temp.getPlayerData(), clusterAmount, weights[2]);
+                        lowestDis = 999999;
+                        foreach (double[] p in oldPos)
+                        {
+                            for (int y = 0; y < oldPos.Length; y++)
+                            {
+
+                                if (!takenNumbers.Contains(y))
+                                {
+                                    thisDis = Math.Sqrt(Math.Pow(kMean.getCentroids()[y][0] - p[0], 2) + Math.Pow(kMean.getCentroids()[y][1] - p[1], 2));
+                                    if (thisDis < lowestDis)
+                                    {
+                                        lowestDis = thisDis;
+                                        tempVal = y;
+                                    }
+                                }
+                            }
+                            takenNumbers.Add(tempVal);
+                            stabilityFittness += 1 - (lowestDis / (averageDistance + lowestDis));
+                        }
+                    }
+                    stabilityFittness = stabilityFittness / (oldPos.Length * 2);
+                    if (stabilityFittness > 1)
+                    {
+                        stabilityFittness = 1;
+                    }
+
+
+
+                    Dictionary<int, List<double[]>> pointsIn2D = new Dictionary<int, List<double[]>>();
+                    
+
+
+                    pointsIn2D = kMean.getClustersAs2DPoints();
+                    //KMeansFunction
+
+
+
+
+                    /*MatchResults matchResultsConversionHolder = temp.GetMatchResults().Clone() as MatchResults;
+                    matchResultsConversionHolder.ConvertToClassesFromKmeans(kMean);
+                    System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
+
+
+                    long[] wins = new long[numberOfClusters];
+                    long[] losses = new long[numberOfClusters];
+                    foreach (var row in matchResultsConversionHolder.AsString().Split("\n"))
+                    {
+                        string[] matchResults = row.Split(" ");
+                        if (row != "" && matchResults.Length > 5) {
+                            for (int x = 0; x < 10; x++)
+                            {
+                                if(long.Parse(matchResults[x]) < numberOfClusters) {
+                                    if (x < 5)
+                                    {
+                                        if (int.Parse(matchResults[10]) > int.Parse(matchResults[11]))
+                                        {
+                                            wins[long.Parse(matchResults[x])]++;
+                                        }
+                                        else
+                                        {
+                                            losses[long.Parse(matchResults[x])]++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (int.Parse(matchResults[10]) < int.Parse(matchResults[11]))
+                                        {
+                                            wins[long.Parse(matchResults[x])]++;
+                                        }
+                                        else
+                                        {
+                                            losses[long.Parse(matchResults[x])]++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }*/
+
+                    double weightsFittness = 0;
+                    foreach (double w in weights[testNum]) weightsFittness += w;
+                    weightsFittness = weightsFittness / weights[testNum].Length;
+
+
+                    double dd = dumbPrediction.calculateDumbPrediction(theMatchResults, wins, losses);
+                    
+                    System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines" + "C" + clusterAmount + "W" + (testNum + 1) + weightNames[testNum] + "P" + Math.Round((dd * 100), 0) + ".txt", theMatchResults.AsString().Split("\n"));
+                    UIGeneratorClass UI = new UIGeneratorClass(pointsIn2D, kMean.getCentroids(), temp.getStats(), wins, losses, "C" + clusterAmount + "W" + (testNum+1) + weightNames[testNum] + "P" + Math.Round((dd * 100), 0), Math.Pow(winLossFittness, 3), Math.Pow(stabilityFittness, 2), weightsFittness, Math.Pow(winLossFittness, 3) * Math.Pow(stabilityFittness, 2) * weightsFittness, dd);
+                    UI.generateHTML();
+                }
             Console.ReadKey();
 
 

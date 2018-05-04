@@ -14,12 +14,24 @@ namespace ECO
         int[] stats;
         long[] wins;
         long[] losses;
-        public UIGeneratorClass(Dictionary<int, List<double[]>> allPoints, double[][] centroids, int[] parseStats, long[] wins, long[] losses)
+        string htmlName;
+        double winLossFittness;
+        double stabilityFittness;
+        double weightFittness;
+        double totalFittness;
+        double dumbPrediction;
+        public UIGeneratorClass(Dictionary<int, List<double[]>> allPoints, double[][] centroids, int[] parseStats, long[] wins, long[] losses, string htmlName, double winLossFittness, double stabilityFittness, double weightFittness, double totalFittness, double dumbPrediction)
         {
             this.wins = wins;
             this.losses = losses;
 
 
+            this.stabilityFittness = stabilityFittness;
+            this.weightFittness = weightFittness;
+            this.totalFittness = totalFittness;
+            this.winLossFittness = winLossFittness;
+            this.dumbPrediction = dumbPrediction;
+            this.htmlName = htmlName;
             stats = parseStats;
             centroidsEn = centroids;
             colours = new Dictionary<int, string>();
@@ -31,7 +43,7 @@ namespace ECO
 
         public void generateHTML()
         {
-            System.IO.File.WriteAllText(@"..\ECO\Output\html.html", html);
+            System.IO.File.WriteAllText(@"..\ECO\Output\html" + htmlName + ".html", html);
         }
 
         private string ClusterGenerator()
@@ -133,7 +145,7 @@ namespace ECO
 
         private string SimpleStatsGenerator()
         {
-            return "<div class=\"col-sm-2\"><div class=\"container mt-5\"><h4>" + stats[2] + "</h4>\n" + "<h4>" + stats[0] + "</h4>\n" + "<h4>" + stats[1] + "</h4>\n</div></div>"; ;
+            return "<div class=\"col-sm-4\"><div class=\"container mt-5\"><h4>" + stats[2] + "</h4>\n" + "<h4>" + stats[0] + "</h4>\n" + "<h4>" + stats[1] + "</h4>\n" + "<h4>" + "Statistical Prediction: " + Math.Round(dumbPrediction,5)*100 + "%</h4>\n</div></div>" + "<div class=\"col-sm-4\"><div class=\"container mt-5\"><h4>" + "Stability Fittness: " + stabilityFittness + "</h4>\n" + "<h4>" + "Win/Loss Fittness: " + winLossFittness + "</h4>\n" + "<h4>" + "Weight Fittness: " + weightFittness + "</h4>\n" +  "<h4>" + "Total Fittness: " + totalFittness + "</h4>\n</div></div>";
         }
 
         private string ClusterStats()
