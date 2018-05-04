@@ -514,9 +514,10 @@ namespace ECO
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_ECO, DemoInfo.Team.CounterTerrorist, TRADE_KILL_ECO_CT[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_FORCE, DemoInfo.Team.Terrorist, TRADE_KILL_FORCE_T[p.SteamID]);
                         playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.TRADE_KILL_FORCE, DemoInfo.Team.CounterTerrorist, TRADE_KILL_FORCE_CT[p.SteamID]);
-
                     }
-                    foreach (long player in ctPlayers)
+
+                }
+                foreach (long player in ctPlayers)
                     {
                         parsedGameData.Add(playerData[player].saveGame());
                     }
@@ -524,7 +525,6 @@ namespace ECO
                     {
                         parsedGameData.Add(playerData[player].saveGame());
                     }
-                }
                 countWait++;
                 if (countWait > 0) {
                     File.WriteAllLines(@"..\ECO\Save Files\parsedgames.txt", parsedGameData);
