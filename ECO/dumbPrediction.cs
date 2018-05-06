@@ -12,12 +12,16 @@ namespace ECO
 
             double aTeamPoints;
             double bTeamPoints;
+            double addedA;
+            double addedB;
             double correctAnswers = 0;
             long[] row;
             for (int rowNum = 0; rowNum < theMatchResults.MatchResultList.Count; rowNum++)
             {
                 aTeamPoints = 0;
                 bTeamPoints = 0;
+                addedA = 0;
+                addedB = 0;
                 row = theMatchResults.MatchResultList[rowNum];
                 //foreach (var row in theMatchResults.MatchResultList)
                 //{ 
@@ -30,10 +34,12 @@ namespace ECO
                             if (x < 5)
                             {
                                 aTeamPoints = (((double)wins[row[x]] / ((double)wins[row[x]] + (double)losses[row[x]])));
+                                addedA++;
                             }
                             else
                             {
                                 bTeamPoints = (((double)wins[row[x]] / ((double)wins[row[x]] + (double)losses[row[x]])));
+                                addedB++;
                             }
                         }
                     }

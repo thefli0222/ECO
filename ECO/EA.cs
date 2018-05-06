@@ -15,7 +15,7 @@ namespace ECO
         private double incestControl;
         private int pickRate;
         private ParserThread data;
-        private static int numberOfThreads = 6;
+        private static int numberOfThreads = 28;
 
         internal FatChild BestChild { get => bestChild; set => bestChild = value; }
 
@@ -38,9 +38,8 @@ namespace ECO
 
         public double RunGenerations(int amount, int numberOfClusters)
         {
-            Console.Clear();
             Thread[] dowloadingStreamThreads = new Thread[numberOfThreads];
-
+            int countGeneration = 0;
 
             for (int t = 0; t < amount; t++)
             {
@@ -56,6 +55,7 @@ namespace ECO
                             {
                                 dowloadingStreamThreads[threadNum] = new Thread(delegate ()
                                 {
+                                    Console.WriteLine("Thread start: " + threadNum);
                                     Kmeans kMean;
                                     double winLossFittness;
                                     double totalAmountOfPoints = 0;
@@ -120,7 +120,7 @@ namespace ECO
                                     {
                                         winLossFittness = 0;
                                     }
-                                    //Console.WriteLine(winLossFittness);
+                                    
 
                                     double averageDistance = 0;
                                     double[][] oldPos = kMean.getCentroids();
@@ -167,6 +167,7 @@ namespace ECO
                                         stabilityFittness = 1;
                                     }
                                     child.setFittness(stabilityFittness, winLossFittness);
+                                    Console.WriteLine("One done: " + threadNum);
                                 });
                                 dowloadingStreamThreads[threadNum].Start();
                                 isGettingCalculated = true;
@@ -192,6 +193,7 @@ namespace ECO
                         }
                     }
                     System.Threading.Thread.Sleep(100);
+                    Console.WriteLine("Waiting");
 
                 }
 
@@ -225,7 +227,7 @@ namespace ECO
                 {
                     children[r].mutate(mutationRate);
                 }
-                Console.WriteLine(bestChild.FittnessString());
+                Console.WriteLine(bestChild.FittnessString() + "Generation count: " + ++countGeneration + " Num clusters: " + numberOfClusters);
             }
             return bestChild.LastFittness;
         }

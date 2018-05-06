@@ -28,7 +28,7 @@ namespace ECO
             weights[1] = new double[Enum.GetNames(typeof(PlayerData.STAT)).Length * 2];
 
             int c = 0;
-            foreach (var value in System.IO.File.ReadAllText(@"..\ECO\Save Files\weights.txt").Split(" "))
+            foreach (var value in System.IO.File.ReadAllText(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\weights.txt").Split(" "))
             {
                 if (value != "")
                 {
@@ -66,27 +66,27 @@ namespace ECO
             {
                 weightsString += value + " ";
             }
-            System.IO.File.WriteAllText(@"..\ECO\Save Files\weights.txt", weightsString);
+            System.IO.File.WriteAllText(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\weights.txt", weightsString);
 
 
             Console.WriteLine(Directory.GetCurrentDirectory() + @"/demos/");
             //string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory() + @"/Demo links/", "*.dem");
             ParserThread temp = new ParserThread("", "*.dem");
-
-            System.IO.File.WriteAllLines(@"..\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
-
-            EA evolution = new EA(0.7, 0.7, (1 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 50, temp, 20);
-            evolution.RunGenerations(1, 8);
+            Console.WriteLine("Write start");
+            System.IO.File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
+            Console.WriteLine("Evolution start");
+            EA evolution = new EA(0.7, 0.7, (4 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 25, temp, 10);
+            evolution.RunGenerations(15, 8);
 
             weights[2] = evolution.BestChild.Weights;
 
-            evolution = new EA(0.7, 0.7, (1 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 50, temp, 20);
-            evolution.RunGenerations(1, 16);
+            evolution = new EA(0.7, 0.7, (4 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 25, temp, 10);
+            evolution.RunGenerations(15, 16);
 
             weights[3] = evolution.BestChild.Weights;
 
-            evolution = new EA(0.7, 0.7, (1 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 50, temp, 20);
-            evolution.RunGenerations(1, 32);
+            evolution = new EA(0.7, 0.7, (4 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 25, temp, 10);
+            evolution.RunGenerations(15, 32);
 
             weights[4] = evolution.BestChild.Weights;
 
@@ -102,7 +102,7 @@ namespace ECO
             }*/
 
 
-            /*foreach (var row in System.IO.File.ReadAllLines(@"..\ECO\Save Files\matchresults.txt"))
+            /*foreach (var row in System.IO.File.ReadAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\matchresults.txt"))
             {
 
                 long[] ctPlayers = new long[5];
@@ -282,7 +282,7 @@ namespace ECO
 
                     /*MatchResults matchResultsConversionHolder = temp.GetMatchResults().Clone() as MatchResults;
                     matchResultsConversionHolder.ConvertToClassesFromKmeans(kMean);
-                    System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
+                    System.IO.File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Output\WriteLines.txt", temp.GetMatchResults().AsString().Split("\n"));
 
 
                     long[] wins = new long[numberOfClusters];
@@ -328,7 +328,7 @@ namespace ECO
 
                     double dd = dumbPrediction.calculateDumbPrediction(theMatchResults, wins, losses);
                     
-                    System.IO.File.WriteAllLines(@"..\ECO\Output\WriteLines" + "C" + clusterAmount + "W" + (testNum + 1) + weightNames[testNum] + "P" + Math.Round((dd * 100), 0) + ".txt", theMatchResults.AsString().Split("\n"));
+                    System.IO.File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Output\WriteLines" + "C" + clusterAmount + "W" + (testNum + 1) + weightNames[testNum] + "P" + Math.Round((dd * 100), 0) + ".txt", theMatchResults.AsString().Split("\n"));
                     UIGeneratorClass UI = new UIGeneratorClass(pointsIn2D, kMean.getCentroids(), temp.getStats(), wins, losses, "C" + clusterAmount + "W" + (testNum+1) + weightNames[testNum] + "P" + Math.Round((dd * 100), 0), Math.Pow(winLossFittness, 3), Math.Pow(stabilityFittness, 2), weightsFittness, Math.Pow(winLossFittness, 3) * Math.Pow(stabilityFittness, 2) * weightsFittness, dd);
                     UI.generateHTML();
                 }
