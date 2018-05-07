@@ -5200,3 +5200,5 @@ https://s3.amazonaws.com/faceit-puppeteer/prod/csgo/7820ed23-c564-44af-ad15-4830
 https://s3.amazonaws.com/faceit-puppeteer/prod/csgo/89213541-f096-4343-8484-2d40b27f8628/89213541-f096-4343-8484-2d40b27f8628.dem.gz
 https://s3.amazonaws.com/faceit-puppeteer/prod/csgo/56c89e10-8135-413a-b172-3a538e81e519/56c89e10-8135-413a-b172-3a538e81e519.dem.gz
 https://s3.amazonaws.com/faceit-puppeteer/prod/csgo/0163333b-2cca-4cdd-8184-ee2e11fa67e2/0163333b-2cca-4cdd-8184-ee2e11fa67e2.dem.gz
+https://s3.amazonaws.com/faceit-puppeteer/prod/csgo/105d7d69-1907-4bf0-b421-c92d7fefb0eb/105d7d69-1907-4bf0-b421-c92d7fefb0eb.dem.gz
+https://s3.amazonaws.com/faceit-puppeteer/prod/csgo/3149c2d7-b646-461e-ac5b-338386521140/3149c2d7-b646-461e-ac5b-338386521140.dem.gz

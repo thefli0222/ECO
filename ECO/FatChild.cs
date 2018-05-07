@@ -41,7 +41,7 @@ namespace ECO
             this.winLossFittness = Math.Pow(winLossFittness,3);
             weightsFittness = 0;
             foreach (double w in weights) weightsFittness += w;
-            weightsFittness = Math.Sqrt((weightsFittness / weights.Length));
+            weightsFittness = (weightsFittness / weights.Length);
             lastFittness = this.stabilityFittness * this.winLossFittness * this.weightsFittness;
         }
 
