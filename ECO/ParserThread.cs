@@ -62,7 +62,7 @@ namespace ECO
         DownloadStreamClass[] downloadStreamClasses;
         private MatchResults matchResults;
         public const int numberOfDownloadingThreads = 8; //Each thread takes roughly 800mb ram usage. This can and will probably be optimized in the future. 5 for each parsing thread is usually enough.
-        public const int stopValue = 100;
+        public const int stopValue = 5202;
         private List<String> parsedFiles;
         private List<String> parsedGameData;
         int numberOfErrors, numberOfNotFoundFiles;
@@ -156,17 +156,10 @@ namespace ECO
             numberOfFiles = filePaths.Length;
             MemoryStream beingUsed;
 
-            int resultFixer = 0;
-            long ctKills = 0;
-            long tDeath = 0;
-            long gameNum = 1;
-            long errorAvoided = 0;
-            bool errorOccured = false;
-            bool errorOccuredThisRound = false;
+
             long[] ctPlayers = new long[5];
             long[] tPlayers = new long[5];
             long[] results = new long[2];
-            long[] itterationResults = new long[2];
             foreach (String game in parsedGameData)
             {
                 string[] tempStringArray = game.Split("|");
@@ -174,74 +167,20 @@ namespace ECO
                 string map = tempStringArray[tempStringArray.Length - 2];
                 isIDTracked(steamID);
 
-                itterationResults[0] = long.Parse(tempStringArray[0]);
-                itterationResults[1] = long.Parse(tempStringArray[1]);
-
-                if (resultFixer == 0)
+                for (int x = 2; x < tempStringArray.Length - 2; x++)
                 {
-                    results[0] = long.Parse(tempStringArray[0]);
-                    results[1] = long.Parse(tempStringArray[1]);
-                }
-                if (resultFixer < 5)
-                {
-                    ctPlayers[resultFixer] = steamID;
-                    ctKills += long.Parse(tempStringArray[2]);
-
-                }
-                else
-                {
-                    tPlayers[resultFixer - 5] = steamID;
-                    tDeath += long.Parse(tempStringArray[54]);
-                }
-                resultFixer++;
-                if(steamID == 0 || results[0] > 30 || results[1] > 30 || results[0] == results[1])
-                {
-                    errorOccured = true;
-                }
-                if (itterationResults[0] + itterationResults[1] == 0) {
-                    errorOccuredThisRound = true;
-                }
-                if (itterationResults[0] > 30 || itterationResults[1] > 30) {
-                    errorOccuredThisRound = true;
-                }
-                if (resultFixer == 10)
-                {
-                    if (errorOccured == false)
+                    if (x < (tempStringArray.Length / 2))
                     {
-                        matchResults.AddMatchResult(ctPlayers, tPlayers, results);
-                        if (ctKills != tDeath && Math.Abs(ctKills - tDeath) > 1) { Console.WriteLine(gameNum + " | Woops it's not working" + " Diff: " + (ctKills - tDeath)); } //else { Console.WriteLine("Worked"); }
+                        playerData[steamID].addNumber(map, (PlayerData.STAT)(x - 2), Team.CounterTerrorist, long.Parse(tempStringArray[x]));
                     }
-                    else Console.WriteLine("Error avoided: " + ++errorAvoided);
-                    errorOccured = false;
-                    resultFixer = 0;
-                    ctPlayers = new long[5];
-                    tPlayers = new long[5];
-                    results = new long[2];
-                    itterationResults = new long[2];
-                    ctKills = 0;
-                    tDeath = 0;
-                    gameNum++;
-                }
-
-
-                if (errorOccuredThisRound == false)
-                {
-                    for (int x = 2; x < tempStringArray.Length - 2; x++)
+                    else
                     {
-                        if (x < (tempStringArray.Length / 2))
-                        {
-                            playerData[steamID].addNumber(map, (PlayerData.STAT)(x - 2), Team.CounterTerrorist, long.Parse(tempStringArray[x]));
-                        }
-                        else
-                        {
-                            playerData[steamID].addNumber(map, (PlayerData.STAT)(x - (tempStringArray.Length / 2)), Team.Terrorist, long.Parse(tempStringArray[x]));
-                        }
-
+                        playerData[steamID].addNumber(map, (PlayerData.STAT)(x - (tempStringArray.Length / 2)), Team.Terrorist, long.Parse(tempStringArray[x]));
                     }
-                    playerData[steamID].addRound(map, Team.CounterTerrorist, long.Parse(tempStringArray[0]));
-                    playerData[steamID].addRound(map, Team.Terrorist, long.Parse(tempStringArray[1]));
+
                 }
-                errorOccuredThisRound = false;
+                playerData[steamID].addRound(map, Team.CounterTerrorist, long.Parse(tempStringArray[0]));
+                playerData[steamID].addRound(map, Team.Terrorist, long.Parse(tempStringArray[1]));
             }
             System.Threading.Thread.Sleep(100);
 
@@ -394,6 +333,7 @@ namespace ECO
                 try
                 {
                     File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedlinks.txt", parsedFiles);
+                   
                 }
                 catch
                 {
@@ -594,9 +534,10 @@ namespace ECO
                     parsedGameData.Add(playerData[player].saveGame());
                 }
                 countWait++;
-                if (countWait > 0)
+                if (countWait > 100)
                 {
-                    //File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedgames.txt", parsedGameData);
+                    File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\parsedgames.txt", parsedGameData);
+                    File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\matchresults.txt", this.GetMatchResults().AsString().Split("\n"));
                     countWait = 0;
                 }
             };
@@ -667,24 +608,24 @@ namespace ECO
                 isIDTracked(victim.SteamID);
 
 
-                    //calculate how much killer moved his crosshair 1/8th of a second before the kill
-                    long crosshairMovementX = (long)Math.Abs(viewDirection[killer.SteamID].Item1 - killer.ViewDirectionX);
+                //calculate how much killer moved his crosshair 1/8th of a second before the kill
+                long crosshairMovementX = (long)Math.Abs(viewDirection[killer.SteamID].Item1 - killer.ViewDirectionX);
                 long crosshairMovementY = (long)Math.Abs(viewDirection[killer.SteamID].Item2 - killer.ViewDirectionY);
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_X, killer.Team, crosshairMovementX);
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.CROSSHAIR_MOVE_KILL_Y, killer.Team, crosshairMovementY);
 
 
-                    //difference in equipment value between victim and killer
-                    int equipmentValueDif = killer.CurrentEquipmentValue - victim.CurrentEquipmentValue;
+                //difference in equipment value between victim and killer
+                int equipmentValueDif = killer.CurrentEquipmentValue - victim.CurrentEquipmentValue;
 
-                    //add data to killer
-                    playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
+                //add data to killer
+                playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.KILL, killer.Team, 1);
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_KILL, killer.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_KILL, killer.Team, distanceFromClosestPlayer(parser, killer, parser.PlayingParticipants));
                 playerData[killer.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_KILL, killer.Team, equipmentValueDif);
 
-                    //add data to victim(killed)
-                    playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, victim.Team, 1);
+                //add data to victim(killed)
+                playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.DEATH, victim.Team, 1);
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.TIME_OF_DEATH, victim.Team, (long)(parser.CurrentTime - roundStartTime)); //The time elapsed in this round
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.ALONE_DEATH, victim.Team, distanceFromClosestPlayer(parser, victim, parser.PlayingParticipants));
                 playerData[victim.SteamID].addNumber(parser.Map, PlayerData.STAT.EQUIPMENT_DIF_DEATH, victim.Team, equipmentValueDif);
@@ -692,16 +633,16 @@ namespace ECO
 
 
 
-                    //Store the time(in seconds) when a player last got a kill
-                    if (timeOfKill.ContainsKey(killer.SteamID))
+                //Store the time(in seconds) when a player last got a kill
+                if (timeOfKill.ContainsKey(killer.SteamID))
                 {
                     timeOfKill[killer.SteamID] = parser.CurrentTime;
                 }
                 else
                     timeOfKill.Add(killer.SteamID, parser.CurrentTime);
 
-                    //Killing methods
-                    killFromBehind(killer, victim, parser);
+                //Killing methods
+                killFromBehind(killer, victim, parser);
 
 
                 firstKill(killer, parser);
@@ -711,8 +652,8 @@ namespace ECO
                 positionKill(killer, parser);
                 pistolRoundKill(killer, parser);
 
-                    //do this after all kill methods
-                    lastKillTick = parser.CurrentTick;
+                //do this after all kill methods
+                lastKillTick = parser.CurrentTick;
             };
 
             parser.SmokeNadeEnded += (sender, e) =>
@@ -748,8 +689,8 @@ namespace ECO
 
                 playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_THROWN, thrower.Team, 1);
 
-                    //add duration a player blinded teammates or enemies
-                    foreach (Player p in e.FlashedPlayers)
+                //add duration a player blinded teammates or enemies
+                foreach (Player p in e.FlashedPlayers)
                 {
                     if (p.FlashDuration > 0.3)
                     {
@@ -760,11 +701,11 @@ namespace ECO
                         else
                             playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.ENEMY_DURATION_FLASHED, thrower.Team, (long)p.FlashDuration);
 
-                            //add duration each player was blinded
-                            playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DURATION_FLASHED, p.Team, (long)p.FlashDuration);
+                        //add duration each player was blinded
+                        playerData[p.SteamID].addNumber(parser.Map, PlayerData.STAT.DURATION_FLASHED, p.Team, (long)p.FlashDuration);
 
-                            //increment successful flash counter
-                            playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_SUCCESSFUL, thrower.Team, 1);
+                        //increment successful flash counter
+                        playerData[thrower.SteamID].addNumber(parser.Map, PlayerData.STAT.FLASH_SUCCESSFUL, thrower.Team, 1);
                     }
                 }
 

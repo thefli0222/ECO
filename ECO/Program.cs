@@ -76,17 +76,17 @@ namespace ECO
             System.IO.File.WriteAllLines(@"C:\Users\Fredrik\Documents\GitHub\ECO\ECO\Save Files\matchresults.txt", temp.GetMatchResults().AsString().Split("\n"));
             Console.WriteLine("Evolution start");
             EA evolution = new EA(0.7, 0.7, (4 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 25, temp, 10);
-            evolution.RunGenerations(15, 8);
+            evolution.RunGenerations(25, 8);
 
             weights[2] = evolution.BestChild.Weights;
 
             evolution = new EA(0.7, 0.7, (4 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 25, temp, 10);
-            evolution.RunGenerations(15, 16);
+            evolution.RunGenerations(25, 16);
 
             weights[3] = evolution.BestChild.Weights;
 
             evolution = new EA(0.7, 0.7, (4 / (Enum.GetNames(typeof(PlayerData.STAT)).Length)), 0.3, 25, temp, 10);
-            evolution.RunGenerations(15, 32);
+            evolution.RunGenerations(25, 32);
 
             weights[4] = evolution.BestChild.Weights;
 
